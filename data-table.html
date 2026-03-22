@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>축제 데이터 표 보기 | 정보 수업</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    body {
+      background: #f4f7fb;
+      color: #1f2937;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1d4ed8, #4338ca);
+      color: white;
+      text-align: center;
+      padding: 64px 20px;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1.05rem;
+      opacity: 0.95;
+    }
+
+    nav {
+      background: white;
+      text-align: center;
+      padding: 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 700;
+      margin: 0 12px;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1400px;
+      margin: 30px auto 56px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .card p {
+      color: #475569;
+      margin-bottom: 14px;
+    }
+
+    .highlight-box {
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      padding: 16px;
+      color: #1e3a8a;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1200px;
+    }
+
+    thead {
+      background: #e0e7ff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #1e3a8a;
+      font-weight: 800;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    tbody tr:hover {
+      background: #eef2ff;
+    }
+
+    .question-list {
+      padding-left: 20px;
+      color: #334155;
+    }
+
+    .question-list li {
+      margin-bottom: 8px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #2563eb;
+      color: white;
+      padding: 11px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .btn.secondary {
+      background: #64748b;
+    }
+
+    .btn:hover {
+      opacity: 0.93;
+    }
+
+    .guide {
+      margin-top: 14px;
+      padding: 14px;
+      background: #f8fafc;
+      border-left: 5px solid #2563eb;
+      border-radius: 12px;
+      color: #334155;
+      font-size: 0.95rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 10px 16px 36px;
+      color: #6b7280;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 700px) {
+      header h1 {
+        font-size: 1.95rem;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>여름 축제 데이터 표 보기</h1>
+    <p>빅데이터가 수집된 상황을 먼저 살펴보고, 이 데이터를 어떻게 시각화할지 생각해봅시다.</p>
+  </header>
+
+  <nav>
+    <a href="index.html">홈</a>
+    <a href="data-science.html">데이터 과학</a>
+    <a href="chart-comparison.html">차트 시뮬레이션</a>
+    <a href="programming.html">프로그래밍</a>
+    <a href="ai.html">인공지능</a>
+  </nav>
+
+  <main class="container">
+    <section class="card">
+      <h2>상황 설정</h2>
+      <p>
+        여름 축제에서 다양한 데이터가 수집되었습니다. 시간대별 기온, 먹거리 판매량,
+        구역별 방문자 수처럼 서로 성격이 다른 데이터가 함께 존재합니다.
+      </p>
+      <div class="highlight-box">
+        이 많은 데이터를 표로만 보면 한눈에 이해하기 어렵습니다.<br />
+        그렇다면 이 데이터를 차트로 바꾸면 어떤 점이 더 잘 보일까요?
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>수집된 데이터 표</h2>
+      <p>
+        아래는 축제 기간 동안 수집된 데이터입니다. 먼저 표를 관찰해보고,
+        어떤 차트가 어울릴지 예측해보세요.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th>시간대</th>
+              <th>기온(°C)</th>
+              <th>떡볶이 판매</th>
+              <th>에이드 판매</th>
+              <th>핫도그 판매</th>
+              <th>아이스크림 판매</th>
+              <th>공연구역 방문자</th>
+              <th>먹거리구역 방문자</th>
+              <th>포토존 방문자</th>
+              <th>게임존 방문자</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>7/20</td><td>오전</td><td>22</td><td>18</td><td>10</td><td>7</td><td>5</td><td>120</td><td>95</td><td>60</td><td>80</td></tr>
+            <tr><td>7/20</td><td>정오</td><td>29</td><td>22</td><td>15</td><td>11</td><td>9</td><td>170</td><td>140</td><td>90</td><td>110</td></tr>
+            <tr><td>7/20</td><td>오후</td><td>31</td><td>28</td><td>21</td><td>14</td><td>12</td><td>210</td><td>180</td><td>120</td><td>135</td></tr>
+            <tr><td>7/20</td><td>저녁</td><td>25</td><td>17</td><td>13</td><td>10</td><td>8</td><td>160</td><td>130</td><td>95</td><td>100</td></tr>
+
+            <tr><td>7/21</td><td>오전</td><td>23</td><td>19</td><td>11</td><td>8</td><td>6</td><td>125</td><td>100</td><td>66</td><td>82</td></tr>
+            <tr><td>7/21</td><td>정오</td><td>28</td><td>24</td><td>16</td><td>12</td><td>10</td><td>180</td><td>145</td><td>92</td><td>118</td></tr>
+            <tr><td>7/21</td><td>오후</td><td>30</td><td>31</td><td>22</td><td>15</td><td>13</td><td>220</td><td>188</td><td>126</td><td>142</td></tr>
+            <tr><td>7/21</td><td>저녁</td><td>24</td><td>18</td><td>14</td><td>9</td><td>7</td><td>165</td><td>135</td><td>96</td><td>105</td></tr>
+
+            <tr><td>7/22</td><td>오전</td><td>21</td><td>17</td><td>9</td><td>6</td><td>4</td><td>118</td><td>90</td><td>58</td><td>76</td></tr>
+            <tr><td>7/22</td><td>정오</td><td>27</td><td>21</td><td>14</td><td>10</td><td>8</td><td>168</td><td>138</td><td>88</td><td>108</td></tr>
+            <tr><td>7/22</td><td>오후</td><td>32</td><td>29</td><td>20</td><td>15</td><td>14</td><td>215</td><td>183</td><td>124</td><td>140</td></tr>
+            <tr><td>7/22</td><td>저녁</td><td>26</td><td>16</td><td>12</td><td>9</td><td>8</td><td>158</td><td>128</td><td>93</td><td>101</td></tr>
+
+            <tr><td>7/23</td><td>오전</td><td>22</td><td>18</td><td>10</td><td>7</td><td>5</td><td>122</td><td>97</td><td>61</td><td>81</td></tr>
+            <tr><td>7/23</td><td>정오</td><td>30</td><td>23</td><td>16</td><td>11</td><td>9</td><td>175</td><td>143</td><td>91</td><td>112</td></tr>
+            <tr><td>7/23</td><td>오후</td><td>33</td><td>30</td><td>22</td><td>15</td><td>13</td><td>218</td><td>185</td><td>123</td><td>139</td></tr>
+            <tr><td>7/23</td><td>저녁</td><td>26</td><td>17</td><td>13</td><td>10</td><td>8</td><td>162</td><td>132</td><td>96</td><td>102</td></tr>
+
+            <tr><td>7/24</td><td>오전</td><td>23</td><td>19</td><td>11</td><td>8</td><td>6</td><td>127</td><td>102</td><td>67</td><td>84</td></tr>
+            <tr><td>7/24</td><td>정오</td><td>29</td><td>25</td><td>17</td><td>12</td><td>10</td><td>182</td><td>148</td><td>95</td><td>119</td></tr>
+            <tr><td>7/24</td><td>오후</td><td>31</td><td>32</td><td>23</td><td>16</td><td>14</td><td>224</td><td>190</td><td>128</td><td>144</td></tr>
+            <tr><td>7/24</td><td>저녁</td><td>25</td><td>19</td><td>14</td><td>9</td><td>7</td><td>168</td><td>137</td><td>98</td><td>107</td></tr>
+
+            <tr><td>7/25</td><td>오전</td><td>21</td><td>17</td><td>9</td><td>6</td><td>4</td><td>119</td><td>92</td><td>57</td><td>75</td></tr>
+            <tr><td>7/25</td><td>정오</td><td>28</td><td>22</td><td>14</td><td>10</td><td>8</td><td>169</td><td>139</td><td>87</td><td>109</td></tr>
+            <tr><td>7/25</td><td>오후</td><td>32</td><td>29</td><td>20</td><td>15</td><td>13</td><td>216</td><td>181</td><td>122</td><td>141</td></tr>
+            <tr><td>7/25</td><td>저녁</td><td>24</td><td>16</td><td>12</td><td>9</td><td>7</td><td>159</td><td>129</td><td>94</td><td>99</td></tr>
+
+            <tr><td>7/26</td><td>오전</td><td>22</td><td>18</td><td>10</td><td>7</td><td>5</td><td>121</td><td>96</td><td>60</td><td>79</td></tr>
+            <tr><td>7/26</td><td>정오</td><td>27</td><td>23</td><td>15</td><td>11</td><td>9</td><td>171</td><td>141</td><td>89</td><td>111</td></tr>
+            <tr><td>7/26</td><td>오후</td><td>30</td><td>31</td><td>21</td><td>15</td><td>12</td><td>219</td><td>186</td><td>125</td><td>143</td></tr>
+            <tr><td>7/26</td><td>저녁</td><td>23</td><td>18</td><td>13</td><td>10</td><td>8</td><td>163</td><td>131</td><td>95</td><td>103</td></tr>
+
+            <tr><td>7/27</td><td>오전</td><td>24</td><td>20</td><td>12</td><td>8</td><td>6</td><td>129</td><td>104</td><td>68</td><td>85</td></tr>
+            <tr><td>7/27</td><td>정오</td><td>31</td><td>26</td><td>17</td><td>12</td><td>10</td><td>184</td><td>150</td><td>97</td><td>121</td></tr>
+            <tr><td>7/27</td><td>오후</td><td>34</td><td>33</td><td>24</td><td>16</td><td>14</td><td>228</td><td>193</td><td>130</td><td>146</td></tr>
+            <tr><td>7/27</td><td>저녁</td><td>27</td><td>20</td><td>15</td><td>10</td><td>8</td><td>170</td><td>139</td><td>99</td><td>108</td></tr>
+
+            <tr><td>7/28</td><td>오전</td><td>23</td><td>19</td><td>11</td><td>7</td><td>5</td><td>126</td><td>101</td><td>66</td><td>83</td></tr>
+            <tr><td>7/28</td><td>정오</td><td>30</td><td>24</td><td>16</td><td>11</td><td>9</td><td>178</td><td>146</td><td>94</td><td>117</td></tr>
+            <tr><td>7/28</td><td>오후</td><td>33</td><td>32</td><td>23</td><td>15</td><td>13</td><td>223</td><td>189</td><td>127</td><td>145</td></tr>
+            <tr><td>7/28</td><td>저녁</td><td>26</td><td>18</td><td>14</td><td>9</td><td>7</td><td>167</td><td>136</td><td>97</td><td>106</td></tr>
+
+            <tr><td>7/29</td><td>오전</td><td>22</td><td>18</td><td>10</td><td>6</td><td>4</td><td>123</td><td>98</td><td>62</td><td>80</td></tr>
+            <tr><td>7/29</td><td>정오</td><td>28</td><td>22</td><td>15</td><td>10</td><td>8</td><td>172</td><td>142</td><td>90</td><td>113</td></tr>
+            <tr><td>7/29</td><td>오후</td><td>31</td><td>30</td><td>21</td><td>14</td><td>12</td><td>217</td><td>184</td><td>124</td><td>142</td></tr>
+            <tr><td>7/29</td><td>저녁</td><td>25</td><td>17</td><td>13</td><td>9</td><td>7</td><td>161</td><td>130</td><td>95</td><td>101</td></tr>
+
+            <tr><td>7/30</td><td>오전</td><td>24</td><td>21</td><td>12</td><td>8</td><td>6</td><td>131</td><td>106</td><td>69</td><td>86</td></tr>
+            <tr><td>7/30</td><td>정오</td><td>32</td><td>27</td><td>18</td><td>13</td><td>10</td><td>186</td><td>152</td><td>98</td><td>123</td></tr>
+            <tr><td>7/30</td><td>오후</td><td>35</td><td>34</td><td>25</td><td>17</td><td>15</td><td>230</td><td>195</td><td>132</td><td>148</td></tr>
+            <tr><td>7/30</td><td>저녁</td><td>28</td><td>20</td><td>15</td><td>10</td><td>8</td><td>172</td><td>140</td><td>101</td><td>109</td></tr>
+
+            <tr><td>7/31</td><td>오전</td><td>23</td><td>19</td><td>11</td><td>7</td><td>5</td><td>128</td><td>103</td><td>67</td><td>84</td></tr>
+            <tr><td>7/31</td><td>정오</td><td>29</td><td>24</td><td>16</td><td>11</td><td>9</td><td>180</td><td>147</td><td>95</td><td>118</td></tr>
+            <tr><td>7/31</td><td>오후</td><td>32</td><td>31</td><td>22</td><td>15</td><td>13</td><td>225</td><td>191</td><td>128</td><td>144</td></tr>
+            <tr><td>7/31</td><td>저녁</td><td>26</td><td>18</td><td>14</td><td>9</td><td>7</td><td>168</td><td>137</td><td>98</td><td>105</td></tr>
+
+            <tr><td>8/1</td><td>오전</td><td>22</td><td>18</td><td>10</td><td>7</td><td>5</td><td>124</td><td>99</td><td>63</td><td>81</td></tr>
+            <tr><td>8/1</td><td>정오</td><td>28</td><td>23</td><td>15</td><td>11</td><td>9</td><td>174</td><td>144</td><td>91</td><td>114</td></tr>
+            <tr><td>8/1</td><td>오후</td><td>31</td><td>30</td><td>21</td><td>14</td><td>12</td><td>219</td><td>186</td><td>125</td><td>141</td></tr>
+            <tr><td>8/1</td><td>저녁</td><td>24</td><td>17</td><td>13</td><td>9</td><td>7</td><td>162</td><td>132</td><td>96</td><td>102</td></tr>
+
+            <tr><td>8/2</td><td>오전</td><td>25</td><td>21</td><td>12</td><td>8</td><td>6</td><td>133</td><td>108</td><td>70</td><td>88</td></tr>
+            <tr><td>8/2</td><td>정오</td><td>33</td><td>28</td><td>18</td><td>13</td><td>11</td><td>188</td><td>154</td><td>100</td><td>124</td></tr>
+            <tr><td>8/2</td><td>오후</td><td>36</td><td>35</td><td>26</td><td>18</td><td>15</td><td>232</td><td>198</td><td>134</td><td>149</td></tr>
+            <tr><td>8/2</td><td>저녁</td><td>29</td><td>21</td><td>16</td><td>10</td><td>8</td><td>174</td><td>142</td><td>102</td><td>111</td></tr>
+
+            <tr><td>8/3</td><td>오전</td><td>24</td><td>20</td><td>11</td><td>8</td><td>6</td><td>130</td><td>105</td><td>69</td><td>86</td></tr>
+            <tr><td>8/3</td><td>정오</td><td>30</td><td>25</td><td>17</td><td>12</td><td>10</td><td>183</td><td>149</td><td>96</td><td>120</td></tr>
+            <tr><td>8/3</td><td>오후</td><td>34</td><td>33</td><td>24</td><td>16</td><td>14</td><td>227</td><td>193</td><td>129</td><td>146</td></tr>
+            <tr><td>8/3</td><td>저녁</td><td>27</td><td>19</td><td>15</td><td>10</td><td>8</td><td>170</td><td>139</td><td>100</td><td>108</td></tr>
+
+            <tr><td>8/4</td><td>오전</td><td>23</td><td>19</td><td>10</td><td>7</td><td>5</td><td>126</td><td>101</td><td>66</td><td>84</td></tr>
+            <tr><td>8/4</td><td>정오</td><td>29</td><td>24</td><td>16</td><td>11</td><td>9</td><td>179</td><td>146</td><td>93</td><td>117</td></tr>
+            <tr><td>8/4</td><td>오후</td><td>32</td><td>31</td><td>22</td><td>15</td><td>13</td><td>223</td><td>189</td><td>127</td><td>143</td></tr>
+            <tr><td>8/4</td><td>저녁</td><td>26</td><td>18</td><td>14</td><td>9</td><td>7</td><td>166</td><td>135</td><td>97</td><td>104</td></tr>
+
+            <tr><td>8/5</td><td>오전</td><td>22</td><td>18</td><td>10</td><td>7</td><td>5</td><td>123</td><td>98</td><td>64</td><td>82</td></tr>
+            <tr><td>8/5</td><td>정오</td><td>28</td><td>23</td><td>15</td><td>11</td><td>9</td><td>175</td><td>143</td><td>91</td><td>115</td></tr>
+            <tr><td>8/5</td><td>오후</td><td>31</td><td>30</td><td>21</td><td>14</td><td>12</td><td>220</td><td>187</td><td>126</td><td>142</td></tr>
+            <tr><td>8/5</td><td>저녁</td><td>25</td><td>17</td><td>13</td><td>9</td><td>7</td><td>163</td><td>133</td><td>96</td><td>103</td></tr>
+
+            <tr><td>8/6</td><td>오전</td><td>24</td><td>20</td><td>12</td><td>8</td><td>6</td><td>132</td><td>107</td><td>70</td><td>87</td></tr>
+            <tr><td>8/6</td><td>정오</td><td>31</td><td>26</td><td>17</td><td>12</td><td>10</td><td>185</td><td>151</td><td>98</td><td>122</td></tr>
+            <tr><td>8/6</td><td>오후</td><td>35</td><td>34</td><td>25</td><td>17</td><td>14</td><td>229</td><td>196</td><td>131</td><td>147</td></tr>
+            <tr><td>8/6</td><td>저녁</td><td>28</td><td>20</td><td>15</td><td>10</td><td>8</td><td>171</td><td>141</td><td>101</td><td>109</td></tr>
+
+            <tr><td>8/7</td><td>오전</td><td>23</td><td>19</td><td>11</td><td>7</td><td>5</td><td>128</td><td>103</td><td>67</td><td>85</td></tr>
+            <tr><td>8/7</td><td>정오</td><td>29</td><td>24</td><td>16</td><td>11</td><td>9</td><td>181</td><td>147</td><td>94</td><td>118</td></tr>
+            <tr><td>8/7</td><td>오후</td><td>33</td><td>32</td><td>23</td><td>16</td><td>13</td><td>226</td><td>191</td><td>128</td><td>145</td></tr>
+            <tr><td>8/7</td><td>저녁</td><td>27</td><td>19</td><td>14</td><td>10</td><td>8</td><td>169</td><td>138</td><td>99</td><td>107</td></tr>
+
+            <tr><td>8/8</td><td>오전</td><td>22</td><td>18</td><td>10</td><td>7</td><td>5</td><td>124</td><td>100</td><td>65</td><td>83</td></tr>
+            <tr><td>8/8</td><td>정오</td><td>28</td><td>23</td><td>15</td><td>11</td><td>9</td><td>176</td><td>144</td><td>92</td><td>116</td></tr>
+            <tr><td>8/8</td><td>오후</td><td>32</td><td>31</td><td>22</td><td>15</td><td>12</td><td>221</td><td>188</td><td>126</td><td>143</td></tr>
+            <tr><td>8/8</td><td>저녁</td><td>25</td><td>18</td><td>13</td><td>9</td><td>7</td><td>164</td><td>134</td><td>97</td><td>104</td></tr>
+
+            <tr><td>8/9</td><td>오전</td><td>25</td><td>21</td><td>12</td><td>8</td><td>6</td><td>134</td><td>109</td><td>71</td><td>89</td></tr>
+            <tr><td>8/9</td><td>정오</td><td>32</td><td>27</td><td>18</td><td>13</td><td>10</td><td>187</td><td>153</td><td>99</td><td>123</td></tr>
+            <tr><td>8/9</td><td>오후</td><td>36</td><td>35</td><td>26</td><td>18</td><td>15</td><td>233</td><td>199</td><td>135</td><td>150</td></tr>
+            <tr><td>8/9</td><td>저녁</td><td>29</td><td>21</td><td>16</td><td>10</td><td>8</td><td>175</td><td>143</td><td>103</td><td>112</td></tr>
+
+            <tr><td>8/10</td><td>오전</td><td>24</td><td>20</td><td>11</td><td>8</td><td>6</td><td>131</td><td>106</td><td>69</td><td>87</td></tr>
+            <tr><td>8/10</td><td>정오</td><td>30</td><td>25</td><td>17</td><td>12</td><td>10</td><td>184</td><td>150</td><td>97</td><td>121</td></tr>
+            <tr><td>8/10</td><td>오후</td><td>34</td><td>33</td><td>24</td><td>16</td><td>14</td><td>228</td><td>194</td><td>130</td><td>147</td></tr>
+            <tr><td>8/10</td><td>저녁</td><td>28</td><td>19</td><td>15</td><td>10</td><td>8</td><td>170</td><td>140</td><td>100</td><td>108</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="guide">
+        <strong>생각해 보기</strong><br />
+        이 표를 그대로 읽으면 어떤 점이 불편한가요? 어떤 데이터는 변화가 중요하고,
+        어떤 데이터는 비율이나 비교가 중요할 수 있습니다.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>관찰 질문</h2>
+      <ul class="question-list">
+        <li>기온처럼 시간에 따라 달라지는 데이터는 어떤 차트가 잘 어울릴까요?</li>
+        <li>먹거리 판매량처럼 전체 중 비율을 보고 싶은 데이터는 어떤 차트가 적합할까요?</li>
+        <li>구역별 방문자 수처럼 항목 간 크기를 비교하고 싶을 때는 어떤 차트가 좋을까요?</li>
+        <li>표로 볼 때와 차트로 볼 때 무엇이 더 잘 보일지 예측해보세요.</li>
+        <li>이 많은 데이터 중 “관계”나 “분포”를 보여주는 차트가 필요한 경우도 있을까요?</li>
+      </ul>
+
+      <div class="button-row">
+        <a href="visualization-lab.html" class="btn">차트 시뮬레이션 하러 가기</a>
+        <a href="data-science.html" class="btn secondary">데이터 과학 페이지로 돌아가기</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 정보 수업 사이트 | 데이터에서 차트로
+  </footer>
+</body>
+</html>

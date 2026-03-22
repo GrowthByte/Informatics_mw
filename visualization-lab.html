@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>차트 비교 시뮬레이션 | 정보 수업</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    body {
+      background: #f4f7fb;
+      color: #1f2937;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1d4ed8, #4338ca);
+      color: white;
+      text-align: center;
+      padding: 64px 20px;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1.05rem;
+      opacity: 0.95;
+    }
+
+    nav {
+      background: white;
+      text-align: center;
+      padding: 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 700;
+      margin: 0 12px;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1500px;
+      margin: 30px auto 56px;
+    }
+
+    .intro-box, .panel, .sim-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .intro-box h2, .panel h2 {
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .intro-box p, .panel p {
+      color: #475569;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .slider-group {
+      margin-bottom: 14px;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+    }
+
+    .slider-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .value-badge {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.92rem;
+      min-width: 62px;
+      text-align: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      display: inline-block;
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 11px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+
+    .btn.secondary {
+      background: #64748b;
+    }
+
+    .btn:hover {
+      opacity: 0.93;
+    }
+
+    .sim-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(320px, 1fr));
+      gap: 22px;
+    }
+
+    .sim-card h3 {
+      margin-bottom: 8px;
+      color: #111827;
+      font-size: 1.15rem;
+    }
+
+    .sim-card .desc {
+      color: #475569;
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      background: #eef2ff;
+      color: #3730a3;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    select {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 320px;
+      border-radius: 14px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .unsupported-box {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      background: #f8fafc;
+      text-align: center;
+      padding: 24px;
+      color: #475569;
+    }
+
+    .unsupported-box strong {
+      font-size: 1.2rem;
+      color: #dc2626;
+      margin-bottom: 8px;
+    }
+
+    .unsupported-box p {
+      margin-top: 8px;
+      max-width: 420px;
+      color: #475569;
+      font-size: 0.95rem;
+    }
+
+    .guide {
+      margin-top: 14px;
+      padding: 14px;
+      background: #f8fafc;
+      border-left: 5px solid #2563eb;
+      border-radius: 12px;
+      color: #334155;
+      font-size: 0.95rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 10px 16px 36px;
+      color: #6b7280;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 1150px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .sim-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.9rem;
+      }
+
+      .intro-box, .panel, .sim-card {
+        padding: 18px;
+      }
+
+      .chart-wrap {
+        height: 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>차트 비교 시뮬레이션</h1>
+    <p>같은 데이터를 여러 차트로 바꿔 보면서 어떤 표현이 적합한지 직접 비교해보세요.</p>
+  </header>
+
+  <nav>
+    <a href="index.html">홈</a>
+    <a href="data-table.html">표 데이터 보기</a>
+    <a href="data-science.html">데이터 과학</a>
+    <a href="programming.html">프로그래밍</a>
+    <a href="ai.html">인공지능</a>
+  </nav>
+
+  <main class="container">
+    <section class="intro-box">
+      <h2>주제: 여름 축제 데이터</h2>
+      <p>
+        하나의 축제 데이터를 시간 변화, 비율, 규모 비교, 만족도 비교, 두 변수의 관계, 데이터 분포 등
+        여러 관점에서 살펴봅니다. 드롭다운에서 차트를 직접 바꾸며 적합성과 한계를 비교해보세요.
+      </p>
+    </section>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>데이터 값 조절</h2>
+        <p>숫자를 바꾸면 아래 차트들이 함께 달라집니다.</p>
+
+        <div id="sliders"></div>
+
+        <div class="button-row">
+          <button class="btn" id="randomBtn">랜덤 변경</button>
+          <button class="btn secondary" id="resetBtn">초기값으로 되돌리기</button>
+        </div>
+
+        <div class="guide">
+          <strong>활동 포인트</strong><br>
+          “이 데이터가 보여주고 싶은 정보가 무엇인가?”를 먼저 생각한 뒤 차트를 골라보세요.
+        </div>
+      </section>
+
+      <section class="sim-grid">
+        <div class="sim-card">
+          <h3>기온 변화 데이터</h3>
+          <p class="desc">오전부터 저녁까지의 순서 있는 변화 데이터</p>
+          <div class="meta-row">
+            <span class="badge">추천 차트: 꺾은선그래프</span>
+            <select data-chart-key="temp">
+              <option value="line">꺾은선그래프</option>
+              <option value="bar">막대그래프</option>
+              <option value="doughnut">도넛그래프</option>
+              <option value="pie">원그래프</option>
+              <option value="radar">레이더그래프</option>
+              <option value="scatter">산점도</option>
+              <option value="histogram">히스토그램</option>
+              <option value="boxplot">박스플롯</option>
+            </select>
+          </div>
+          <div class="chart-wrap" id="wrap-temp"><canvas id="chart-temp"></canvas></div>
+          <div class="guide">시간의 흐름이 있는 데이터는 변화 추세가 드러나는지가 중요합니다.</div>
+        </div>
+
+        <div class="sim-card">
+          <h3>먹거리 판매 데이터</h3>
+          <p class="desc">전체 판매량 중 각 메뉴가 차지하는 비중 데이터</p>
+          <div class="meta-row">
+            <span class="badge">추천 차트: 도넛/원그래프</span>
+            <select data-chart-key="food">
+              <option value="line">꺾은선그래프</option>
+              <option value="bar">막대그래프</option>
+              <option value="doughnut">도넛그래프</option>
+              <option value="pie">원그래프</option>
+              <option value="radar">레이더그래프</option>
+              <option value="scatter">산점도</option>
+              <option value="histogram">히스토그램</option>
+              <option value="boxplot">박스플롯</option>
+            </select>
+          </div>
+          <div class="chart-wrap" id="wrap-food"><canvas id="chart-food"></canvas></div>
+          <div class="guide">전체 대비 비율을 강조할지, 항목 간 크기 차이를 비교할지 생각해보세요.</div>
+        </div>
+
+        <div class="sim-card">
+          <h3>구역별 방문자 수 데이터</h3>
+          <p class="desc">공연, 먹거리, 포토존, 게임존 방문자 수 비교 데이터</p>
+          <div class="meta-row">
+            <span class="badge">추천 차트: 막대그래프</span>
+            <select data-chart-key="zone">
+              <option value="line">꺾은선그래프</option>
+              <option value="bar">막대그래프</option>
+              <option value="doughnut">도넛그래프</option>
+              <option value="pie">원그래프</option>
+              <option value="radar">레이더그래프</option>
+              <option value="scatter">산점도</option>
+              <option value="histogram">히스토그램</option>
+              <option value="boxplot">박스플롯</option>
+            </select>
+          </div>
+          <div class="chart-wrap" id="wrap-zone"><canvas id="chart-zone"></canvas></div>
+          <div class="guide">독립적인 항목들의 크기를 빠르게 비교하려면 어떤 차트가 더 적합한지 보세요.</div>
+        </div>
+
+        <div class="sim-card">
+          <h3>축제 만족도 데이터</h3>
+          <p class="desc">재미, 안전, 먹거리, 편의성, 프로그램 만족도 비교 데이터</p>
+          <div class="meta-row">
+            <span class="badge">추천 차트: 레이더그래프</span>
+            <select data-chart-key="satis">
+              <option value="line">꺾은선그래프</option>
+              <option value="bar">막대그래프</option>
+              <option value="doughnut">도넛그래프</option>
+              <option value="pie">원그래프</option>
+              <option value="radar">레이더그래프</option>
+              <option value="scatter">산점도</option>
+              <option value="histogram">히스토그램</option>
+              <option value="boxplot">박스플롯</option>
+            </select>
+          </div>
+          <div class="chart-wrap" id="wrap-satis"><canvas id="chart-satis"></canvas></div>
+          <div class="guide">여러 속성의 균형과 강약을 한눈에 보려면 어떤 차트가 더 자연스러운지 비교해보세요.</div>
+        </div>
+
+        <div class="sim-card">
+          <h3>기온과 아이스크림 판매량 관계</h3>
+          <p class="desc">두 수치 사이의 관계를 보는 데이터</p>
+          <div class="meta-row">
+            <span class="badge">추천 차트: 산점도</span>
+            <select data-chart-key="scatter">
+              <option value="line">꺾은선그래프</option>
+              <option value="bar">막대그래프</option>
+              <option value="doughnut">도넛그래프</option>
+              <option value="pie">원그래프</option>
+              <option value="radar">레이더그래프</option>
+              <option value="scatter">산점도</option>
+              <option value="histogram">히스토그램</option>
+              <option value="boxplot">박스플롯</option>
+            </select>
+          </div>
+          <div class="chart-wrap" id="wrap-scatter"><canvas id="chart-scatter"></canvas></div>
+          <div class="guide">두 변수의 관계를 볼 때는 산점도가 가장 자연스럽습니다.</div>
+        </div>
+
+        <div class="sim-card">
+          <h3>축제 부스 대기시간 분포</h3>
+          <p class="desc">학생 여러 명의 대기시간 데이터 분포</p>
+          <div class="meta-row">
+            <span class="badge">추천 차트: 히스토그램 / 박스플롯</span>
+            <select data-chart-key="wait">
+              <option value="line">꺾은선그래프</option>
+              <option value="bar">막대그래프</option>
+              <option value="doughnut">도넛그래프</option>
+              <option value="pie">원그래프</option>
+              <option value="radar">레이더그래프</option>
+              <option value="scatter">산점도</option>
+              <option value="histogram">히스토그램</option>
+              <option value="boxplot">박스플롯</option>
+            </select>
+          </div>
+          <div class="chart-wrap" id="wrap-wait">
+            <div id="chart-wait" style="width:100%; height:100%;"></div>
+          </div>
+          <div class="guide">값이 어떻게 퍼져 있는지 보려면 히스토그램이나 박스플롯이 잘 맞습니다.</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="intro-box">
+      <h2>다시 표 데이터로 돌아가기</h2>
+      <p>
+        차트로 바꿔 본 뒤, 원래 표 데이터와 다시 비교해보세요.
+        표에서 보이지 않던 특징이 차트에서는 더 잘 보일 수 있습니다.
+      </p>
+      <div class="button-row">
+        <a href="data-table.html" class="btn">표 데이터 페이지로 돌아가기</a>
+        <a href="data-science.html" class="btn secondary">데이터 과학 페이지로 돌아가기</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 무완's 정보 수업 사이트 | 데이터 시각화 체험
+  </footer>
+
+  <script>
+    const initialData = {
+      tempMorning: 22,
+      tempNoon: 29,
+      tempAfternoon: 31,
+      tempEvening: 25,
+
+      foodTteokbokki: 35,
+      foodAde: 28,
+      foodHotdog: 22,
+      foodIcecream: 15,
+
+      zoneStage: 320,
+      zoneFood: 260,
+      zonePhoto: 180,
+      zoneGame: 210,
+
+      satisFun: 4,
+      satisSafety: 3,
+      satisFood: 5,
+      satisComfort: 3,
+      satisProgram: 4
+    };
+
+    let data = { ...initialData };
+
+    const waitTimes = [
+      3, 4, 5, 5, 6, 7, 7, 8, 8, 8,
+      9, 10, 10, 11, 12, 12, 12, 13, 14, 14,
+      15, 15, 16, 16, 17, 18, 18, 19, 20, 20,
+      21, 22, 22, 23, 24, 25, 26, 28, 30, 35
+    ];
+
+    function getScatterPoints() {
+      return [
+        { x: 22, y: 5 }, { x: 29, y: 9 }, { x: 31, y: 12 }, { x: 25, y: 8 },
+        { x: 23, y: 6 }, { x: 28, y: 10 }, { x: 30, y: 13 }, { x: 24, y: 7 },
+        { x: 21, y: 4 }, { x: 27, y: 8 }, { x: 32, y: 14 }, { x: 26, y: 8 },
+        { x: 22, y: 5 }, { x: 30, y: 9 }, { x: 33, y: 13 }, { x: 26, y: 8 },
+        { x: 23, y: 6 }, { x: 29, y: 10 }, { x: 31, y: 14 }, { x: 25, y: 7 },
+        { x: 21, y: 4 }, { x: 28, y: 8 }, { x: 32, y: 13 }, { x: 24, y: 7 },
+        { x: 22, y: 5 }, { x: 27, y: 9 }, { x: 30, y: 12 }, { x: 23, y: 8 },
+        { x: 24, y: 6 }, { x: 31, y: 10 }, { x: 34, y: 14 }, { x: 27, y: 8 },
+        { x: 23, y: 5 }, { x: 30, y: 9 }, { x: 33, y: 13 }, { x: 26, y: 7 },
+        { x: 22, y: 4 }, { x: 28, y: 8 }, { x: 31, y: 12 }, { x: 25, y: 7 },
+        { x: 24, y: 6 }, { x: 32, y: 10 }, { x: 35, y: 15 }, { x: 28, y: 8 },
+        { x: 23, y: 5 }, { x: 29, y: 9 }, { x: 32, y: 13 }, { x: 26, y: 7 },
+        { x: 22, y: 5 }, { x: 28, y: 9 }, { x: 31, y: 12 }, { x: 24, y: 7 },
+        { x: 25, y: 6 }, { x: 33, y: 11 }, { x: 36, y: 15 }, { x: 29, y: 8 },
+        { x: 24, y: 6 }, { x: 30, y: 10 }, { x: 34, y: 14 }, { x: 27, y: 8 },
+        { x: 23, y: 5 }, { x: 29, y: 9 }, { x: 32, y: 13 }, { x: 26, y: 7 },
+        { x: 22, y: 5 }, { x: 28, y: 9 }, { x: 31, y: 12 }, { x: 25, y: 7 },
+        { x: 24, y: 6 }, { x: 31, y: 10 }, { x: 35, y: 14 }, { x: 28, y: 8 },
+        { x: 23, y: 5 }, { x: 29, y: 9 }, { x: 33, y: 13 }, { x: 27, y: 8 },
+        { x: 22, y: 5 }, { x: 28, y: 9 }, { x: 32, y: 12 }, { x: 25, y: 7 },
+        { x: 25, y: 6 }, { x: 32, y: 10 }, { x: 36, y: 15 }, { x: 29, y: 8 },
+        { x: 24, y: 6 }, { x: 30, y: 10 }, { x: 34, y: 14 }, { x: 28, y: 8 }
+      ];
+    }
+
+    const sliderMeta = [
+      { key: "tempMorning", label: "오전 기온", min: 10, max: 40, unit: "°C" },
+      { key: "tempNoon", label: "정오 기온", min: 10, max: 40, unit: "°C" },
+      { key: "tempAfternoon", label: "오후 기온", min: 10, max: 40, unit: "°C" },
+      { key: "tempEvening", label: "저녁 기온", min: 10, max: 40, unit: "°C" },
+
+      { key: "foodTteokbokki", label: "떡볶이 판매", min: 0, max: 100, unit: "" },
+      { key: "foodAde", label: "에이드 판매", min: 0, max: 100, unit: "" },
+      { key: "foodHotdog", label: "핫도그 판매", min: 0, max: 100, unit: "" },
+      { key: "foodIcecream", label: "아이스크림 판매", min: 0, max: 100, unit: "" },
+
+      { key: "zoneStage", label: "공연 구역 방문자", min: 0, max: 500, unit: "명" },
+      { key: "zoneFood", label: "먹거리 구역 방문자", min: 0, max: 500, unit: "명" },
+      { key: "zonePhoto", label: "포토존 방문자", min: 0, max: 500, unit: "명" },
+      { key: "zoneGame", label: "게임존 방문자", min: 0, max: 500, unit: "명" },
+
+      { key: "satisFun", label: "재미 만족도", min: 1, max: 5, unit: "점" },
+      { key: "satisSafety", label: "안전 만족도", min: 1, max: 5, unit: "점" },
+      { key: "satisFood", label: "먹거리 만족도", min: 1, max: 5, unit: "점" },
+      { key: "satisComfort", label: "편의성 만족도", min: 1, max: 5, unit: "점" },
+      { key: "satisProgram", label: "프로그램 만족도", min: 1, max: 5, unit: "점" }
+    ];
+
+    const slidersDiv = document.getElementById("sliders");
+    const chartSelectors = document.querySelectorAll("select[data-chart-key]");
+    const charts = {};
+
+    const palette = [
+      "rgba(59, 130, 246, 0.8)",
+      "rgba(16, 185, 129, 0.8)",
+      "rgba(245, 158, 11, 0.8)",
+      "rgba(239, 68, 68, 0.8)",
+      "rgba(139, 92, 246, 0.8)"
+    ];
+
+    const borderPalette = [
+      "rgba(59, 130, 246, 1)",
+      "rgba(16, 185, 129, 1)",
+      "rgba(245, 158, 11, 1)",
+      "rgba(239, 68, 68, 1)",
+      "rgba(139, 92, 246, 1)"
+    ];
+
+    function formatValue(meta, value) {
+      return `${value}${meta.unit}`;
+    }
+
+    function buildSliders() {
+      slidersDiv.innerHTML = "";
+
+      sliderMeta.forEach(meta => {
+        const group = document.createElement("div");
+        group.className = "slider-group";
+
+        const title = document.createElement("div");
+        title.className = "slider-title";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = meta.label;
+
+        const valueSpan = document.createElement("span");
+        valueSpan.className = "value-badge";
+        valueSpan.id = `value-${meta.key}`;
+        valueSpan.textContent = formatValue(meta, data[meta.key]);
+
+        title.appendChild(labelSpan);
+        title.appendChild(valueSpan);
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = meta.min;
+        slider.max = meta.max;
+        slider.step = 1;
+        slider.value = data[meta.key];
+
+        slider.addEventListener("input", (e) => {
+          data[meta.key] = Number(e.target.value);
+          document.getElementById(`value-${meta.key}`).textContent = formatValue(meta, data[meta.key]);
+          updateAllCharts();
+        });
+
+        group.appendChild(title);
+        group.appendChild(slider);
+        slidersDiv.appendChild(group);
+      });
+    }
+
+    function getChartData(key) {
+      if (key === "temp") {
+        return {
+          labels: ["오전", "정오", "오후", "저녁"],
+          values: [data.tempMorning, data.tempNoon, data.tempAfternoon, data.tempEvening],
+          label: "기온",
+          min: 10,
+          max: 40,
+          kind: "time-series"
+        };
+      }
+
+      if (key === "food") {
+        return {
+          labels: ["떡볶이", "에이드", "핫도그", "아이스크림"],
+          values: [data.foodTteokbokki, data.foodAde, data.foodHotdog, data.foodIcecream],
+          label: "판매량",
+          min: 0,
+          max: 100,
+          kind: "part-to-whole"
+        };
+      }
+
+      if (key === "zone") {
+        return {
+          labels: ["공연", "먹거리", "포토존", "게임존"],
+          values: [data.zoneStage, data.zoneFood, data.zonePhoto, data.zoneGame],
+          label: "방문자 수",
+          min: 0,
+          max: 500,
+          kind: "comparison"
+        };
+      }
+
+      if (key === "satis") {
+        return {
+          labels: ["재미", "안전", "먹거리", "편의성", "프로그램"],
+          values: [data.satisFun, data.satisSafety, data.satisFood, data.satisComfort, data.satisProgram],
+          label: "만족도",
+          min: 0,
+          max: 5,
+          kind: "multi-attribute"
+        };
+      }
+
+      if (key === "scatter") {
+        return {
+          labels: [],
+          values: getScatterPoints(),
+          label: "기온-아이스크림 판매 관계",
+          min: 0,
+          max: 40,
+          kind: "scatter-pair"
+        };
+      }
+
+      return {
+        labels: ["대기시간"],
+        values: waitTimes,
+        label: "대기시간 분포",
+        min: 0,
+        max: 40,
+        kind: "distribution"
+      };
+    }
+
+    function getChartTypeLabel(chartType) {
+      const map = {
+        line: "꺾은선그래프",
+        bar: "막대그래프",
+        doughnut: "도넛그래프",
+        pie: "원그래프",
+        radar: "레이더그래프",
+        scatter: "산점도",
+        histogram: "히스토그램",
+        boxplot: "박스플롯"
+      };
+      return map[chartType] || chartType;
+    }
+
+    function getUnsupportedReason(kind, chartType) {
+      const chartLabel = getChartTypeLabel(chartType);
+
+      const reasons = {
+        "time-series": {
+          doughnut: `${chartLabel}는 전체를 여러 부분으로 나눌 때 적합합니다. 기온 변화 데이터는 시간의 흐름과 변화 추세가 중요해서 부분-전체 관계로 보기 어렵습니다.`,
+          pie: `${chartLabel}는 전체 대비 비율을 보여줄 때 적합합니다. 시간에 따라 달라지는 기온은 비율보다 순서와 변화가 핵심입니다.`,
+          scatter: `${chartLabel}는 보통 두 변수의 관계를 볼 때 사용합니다. 지금 데이터는 시간에 따른 한 변수의 변화라서 산점도보다 추세가 보이는 차트가 더 적합합니다.`,
+          histogram: `${chartLabel}은 값이 어느 구간에 얼마나 모여 있는지, 즉 분포를 볼 때 적합합니다. 기온 변화 데이터는 분포보다 시간 순서가 중요합니다.`,
+          boxplot: `${chartLabel}은 최솟값, 중앙값, 사분위 범위처럼 분포 요약을 보여줄 때 적합합니다. 이 데이터는 시간에 따른 변화 데이터라 분포 요약용 차트와는 맞지 않습니다.`
+        },
+        "part-to-whole": {
+          line: `${chartLabel}는 시간 흐름이나 연속적인 변화 표현에 더 적합합니다. 먹거리 판매 데이터는 각 메뉴가 전체에서 차지하는 비율을 보는 것이 핵심입니다.`,
+          scatter: `${chartLabel}는 두 변수 사이의 관계를 보는 차트입니다. 지금 데이터는 관계 데이터가 아니라 항목별 비율 데이터입니다.`,
+          histogram: `${chartLabel}은 값의 분포를 구간별로 보여줄 때 적합합니다. 지금 데이터는 한 집단 안에서 메뉴별 비중을 비교하는 데이터입니다.`,
+          boxplot: `${chartLabel}은 여러 개의 개별 값이 얼마나 퍼져 있는지 요약할 때 적합합니다. 지금 데이터는 분포보다 메뉴별 비율 비교가 중요합니다.`
+        },
+        "comparison": {
+          scatter: `${chartLabel}는 두 수치형 변수의 관계를 보는 차트입니다. 구역별 방문자 수 데이터는 각 구역의 크기 비교가 목적이어서 관계 차트와 맞지 않습니다.`,
+          histogram: `${chartLabel}은 하나의 수치 데이터가 구간별로 어떻게 퍼지는지 보여줄 때 적합합니다. 지금 데이터는 구역별 항목 비교 데이터입니다.`,
+          boxplot: `${chartLabel}은 여러 개 값의 분포를 요약하는 차트입니다. 구역별 방문자 수는 분포보다 항목 간 크기를 비교하는 것이 더 중요합니다.`
+        },
+        "multi-attribute": {
+          doughnut: `${chartLabel}는 전체를 여러 부분으로 나눠서 비율을 볼 때 적합합니다. 만족도 점수는 전체를 나눈 비율이 아니라 각 항목별 평가 점수입니다.`,
+          pie: `${chartLabel}는 부분-전체 관계를 보여줄 때 적합합니다. 만족도 점수는 각 기준의 평가값이라서 원그래프로 보면 비율처럼 오해할 수 있습니다.`,
+          scatter: `${chartLabel}는 두 변수의 관계를 보는 차트입니다. 만족도 데이터는 여러 평가 항목의 점수 비교이므로 관계 데이터가 아닙니다.`,
+          histogram: `${chartLabel}은 많은 개별 값의 분포를 구간별로 보여줄 때 적합합니다. 지금 데이터는 항목별 점수 비교가 목적입니다.`,
+          boxplot: `${chartLabel}은 점수들이 얼마나 퍼져 있는지 요약할 때 적합합니다. 지금 데이터는 각 만족도 항목의 크기와 균형을 비교하는 것이 핵심입니다.`
+        },
+        "scatter-pair": {
+          line: `${chartLabel}는 순서가 있는 변화 데이터를 그릴 때 적합합니다. 산점도 데이터는 두 변수의 관계를 보는 데이터라 점들의 퍼짐이 중요합니다.`,
+          bar: `${chartLabel}는 항목별 크기 비교에 적합합니다. 지금 데이터는 ‘기온이 높을수록 판매량이 늘어나는가’ 같은 관계를 보는 데이터입니다.`,
+          doughnut: `${chartLabel}는 전체 대비 비율을 보는 차트입니다. 두 변수 사이의 관계 데이터는 비율 차트로 표현하기 어렵습니다.`,
+          pie: `${chartLabel}는 부분-전체 관계를 보여줄 때 적합합니다. 산점도 데이터는 각 점이 하나의 관측값이라 전체를 나눈 조각이 아닙니다.`,
+          radar: `${chartLabel}는 여러 속성의 균형 비교에 적합합니다. 지금 데이터는 속성 균형이 아니라 두 변수의 관계를 보는 데이터입니다.`,
+          histogram: `${chartLabel}은 한 변수의 분포를 구간별로 볼 때 적합합니다. 지금 데이터는 두 변수의 관계를 함께 봐야 하므로 산점도가 더 적합합니다.`,
+          boxplot: `${chartLabel}은 한 변수의 분포를 요약할 때 적합합니다. 지금 데이터는 두 변수 사이의 관계가 핵심이라 박스플롯으로는 관계를 표현하기 어렵습니다.`
+        },
+        "distribution": {
+          line: `${chartLabel}는 순서에 따른 변화 추세를 볼 때 적합합니다. 대기시간 데이터는 시간 흐름보다 값이 어디에 많이 몰려 있는지가 중요합니다.`,
+          bar: `${chartLabel}는 범주별 크기 비교엔 좋지만, 원자료 분포를 그대로 보여주기에는 구간 정보가 필요합니다. 분포 데이터는 히스토그램이나 박스플롯이 더 적합합니다.`,
+          doughnut: `${chartLabel}는 전체를 나눈 비율 차트입니다. 대기시간 데이터는 부분-전체 관계가 아니라 값의 퍼짐과 분포를 봐야 합니다.`,
+          pie: `${chartLabel}는 전체 대비 비율을 보여줄 때 적합합니다. 분포 데이터는 비율보다 구간과 퍼짐이 핵심입니다.`,
+          radar: `${chartLabel}는 여러 속성의 균형 비교용 차트입니다. 대기시간 데이터는 여러 속성 비교가 아니라 하나의 값이 어떻게 분포하는지 보는 데이터입니다.`,
+          scatter: `${chartLabel}는 두 변수 관계를 보는 차트입니다. 지금 데이터는 한 변수의 분포 데이터라 산점도보다 히스토그램이나 박스플롯이 더 적합합니다.`
+        }
+      };
+
+      return reasons[kind]?.[chartType] || `이 데이터는 ${chartLabel}로 표현하기에 적절하지 않습니다.`;
+    }
+
+    function isSupported(kind, chartType) {
+      const supportMap = {
+        "time-series": ["line", "bar", "radar"],
+        "part-to-whole": ["doughnut", "pie", "bar", "radar"],
+        "comparison": ["bar", "line", "doughnut", "pie", "radar"],
+        "multi-attribute": ["radar", "bar", "line"],
+        "scatter-pair": ["scatter"],
+        "distribution": ["histogram", "boxplot"]
+      };
+      return supportMap[kind].includes(chartType);
+    }
+
+    function buildDataset(type, values, label) {
+      if (type === "line") {
+        return [{
+          label,
+          data: values,
+          borderColor: "rgba(37, 99, 235, 1)",
+          backgroundColor: "rgba(37, 99, 235, 0.15)",
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5
+        }];
+      }
+
+      if (type === "radar") {
+        return [{
+          label,
+          data: values,
+          backgroundColor: "rgba(124, 58, 237, 0.2)",
+          borderColor: "rgba(124, 58, 237, 1)",
+          pointBackgroundColor: "rgba(124, 58, 237, 1)",
+          borderWidth: 2
+        }];
+      }
+
+      if (type === "scatter") {
+        return [{
+          label,
+          data: values,
+          backgroundColor: "rgba(239, 68, 68, 0.8)",
+          pointRadius: 5
+        }];
+      }
+
+      return [{
+        label,
+        data: values,
+        backgroundColor: palette,
+        borderColor: borderPalette,
+        borderWidth: 2
+      }];
+    }
+
+    function buildOptions(type, min, max) {
+      if (type === "doughnut" || type === "pie") {
+        return {
+          responsive: true,
+          maintainAspectRatio: false
+        };
+      }
+
+      if (type === "radar") {
+        return {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              min,
+              max,
+              ticks: { stepSize: 1 }
+            }
+          }
+        };
+      }
+
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: min === 0,
+            suggestedMin: min,
+            suggestedMax: max
+          }
+        }
+      };
+    }
+
+    function makeHistogramBins(values) {
+      const bins = [
+        { label: "0~4", min: 0, max: 4 },
+        { label: "5~9", min: 5, max: 9 },
+        { label: "10~14", min: 10, max: 14 },
+        { label: "15~19", min: 15, max: 19 },
+        { label: "20~24", min: 20, max: 24 },
+        { label: "25~29", min: 25, max: 29 },
+        { label: "30~34", min: 30, max: 34 },
+        { label: "35~39", min: 35, max: 39 }
+      ];
+
+      const counts = bins.map(bin =>
+        values.filter(v => v >= bin.min && v <= bin.max).length
+      );
+
+      return {
+        labels: bins.map(bin => bin.label),
+        counts
+      };
+    }
+
+    function clearPlotlyIfNeeded(chartKey) {
+      if (chartKey === "wait") {
+        const waitDiv = document.getElementById("chart-wait");
+        if (waitDiv && typeof Plotly !== "undefined") {
+          try {
+            Plotly.purge(waitDiv);
+          } catch (e) {}
+        }
+      }
+    }
+
+    function showUnsupported(chartKey, reason) {
+      const wrap = document.getElementById(`wrap-${chartKey}`);
+      clearPlotlyIfNeeded(chartKey);
+
+      if (charts[chartKey]) {
+        charts[chartKey].destroy();
+        charts[chartKey] = null;
+      }
+
+      wrap.innerHTML = `
+        <div class="unsupported-box">
+          <strong>표현할 수 없음!</strong>
+          <p>${reason}</p>
+        </div>
+      `;
+    }
+
+    function showCanvas(chartKey, chartType = "") {
+      const wrap = document.getElementById(`wrap-${chartKey}`);
+
+      if (chartType === "boxplot" && chartKey === "wait") {
+        wrap.innerHTML = `<div id="chart-${chartKey}" style="width:100%; height:100%;"></div>`;
+      } else {
+        wrap.innerHTML = `<canvas id="chart-${chartKey}"></canvas>`;
+      }
+    }
+
+    function createOrUpdateChart(chartKey, chartType) {
+      const chartData = getChartData(chartKey);
+
+      if (!isSupported(chartData.kind, chartType)) {
+        showUnsupported(chartKey, getUnsupportedReason(chartData.kind, chartType));
+        return;
+      }
+
+      if (charts[chartKey]) {
+        charts[chartKey].destroy();
+        charts[chartKey] = null;
+      }
+
+      if (chartType === "boxplot") {
+        showCanvas(chartKey, "boxplot");
+        const target = document.getElementById(`chart-${chartKey}`);
+
+        Plotly.newPlot(
+          target,
+          [{
+            y: chartData.values,
+            type: "box",
+            name: chartData.label,
+            boxpoints: "all",
+            jitter: 0.3,
+            pointpos: -1.6
+          }],
+          {
+            margin: { t: 20, r: 20, b: 40, l: 40 },
+            paper_bgcolor: "white",
+            plot_bgcolor: "white"
+          },
+          {
+            displayModeBar: false,
+            responsive: true
+          }
+        );
+
+        return;
+      }
+
+      showCanvas(chartKey);
+      const canvas = document.getElementById(`chart-${chartKey}`);
+
+      if (chartType === "histogram") {
+        const hist = makeHistogramBins(chartData.values);
+
+        charts[chartKey] = new Chart(canvas, {
+          type: "bar",
+          data: {
+            labels: hist.labels,
+            datasets: [{
+              label: chartData.label,
+              data: hist.counts,
+              backgroundColor: palette,
+              borderColor: borderPalette,
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+        return;
+      }
+
+      if (chartType === "scatter") {
+        charts[chartKey] = new Chart(canvas, {
+          type: "scatter",
+          data: {
+            datasets: buildDataset("scatter", chartData.values, chartData.label)
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                type: "linear",
+                position: "bottom",
+                title: {
+                  display: true,
+                  text: "기온"
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "아이스크림 판매량"
+                }
+              }
+            }
+          }
+        });
+        return;
+      }
+
+      charts[chartKey] = new Chart(canvas, {
+        type: chartType,
+        data: {
+          labels: chartData.labels,
+          datasets: buildDataset(chartType, chartData.values, chartData.label)
+        },
+        options: buildOptions(chartType, chartData.min, chartData.max)
+      });
+    }
+
+    function updateAllCharts() {
+      chartSelectors.forEach(selector => {
+        const key = selector.dataset.chartKey;
+        const type = selector.value;
+        createOrUpdateChart(key, type);
+      });
+    }
+
+    chartSelectors.forEach(selector => {
+      selector.addEventListener("change", () => {
+        updateAllCharts();
+      });
+    });
+
+    function randomBetween(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    document.getElementById("randomBtn").addEventListener("click", () => {
+      sliderMeta.forEach(meta => {
+        data[meta.key] = randomBetween(meta.min, meta.max);
+      });
+      buildSliders();
+      updateAllCharts();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      data = { ...initialData };
+      buildSliders();
+      updateAllCharts();
+    });
+
+    buildSliders();
+    updateAllCharts();
+  </script>
+</body>
+</html>
