@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정보 수업 사이트</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: linear-gradient(-45deg, #dbeafe, #eef2ff, #ede9fe, #f0f9ff);
+      background-size: 400% 400%;
+      animation: gradientFlow 12s ease infinite;
+      color: #1f2937;
+      position: relative;
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .floating-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.28);
+      animation: float 8s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    .circle1 {
+      width: 180px;
+      height: 180px;
+      top: 80px;
+      left: 5%;
+    }
+
+    .circle2 {
+      width: 120px;
+      height: 120px;
+      top: 350px;
+      right: 10%;
+      animation-delay: 1.5s;
+    }
+
+    .circle3 {
+      width: 220px;
+      height: 220px;
+      bottom: 60px;
+      left: 12%;
+      animation-delay: 3s;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+    }
+
+    nav {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #2563eb;
+    }
+
+    .menu {
+      display: flex;
+      gap: 24px;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: #374151;
+      font-weight: 700;
+      position: relative;
+      transition: color 0.2s ease;
+    }
+
+    .menu a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 0;
+      height: 2px;
+      background: #2563eb;
+      transition: width 0.25s ease;
+    }
+
+    .menu a:hover {
+      color: #2563eb;
+    }
+
+    .menu a:hover::after {
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      padding: 110px 20px 70px;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      animation: fadeUp 1s ease forwards;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: #374151;
+      animation: fadeUp 1s ease forwards;
+      animation-delay: 0.2s;
+      opacity: 0;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto 80px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeUp 1s ease forwards;
+      animation-delay: 0.4s;
+      opacity: 0;
+    }
+
+    .intro h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #4b5563;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 24px;
+      padding: 32px 25px;
+      text-align: center;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
+      transform: translateY(30px);
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.6s; }
+    .card:nth-child(2) { animation-delay: 0.8s; }
+    .card:nth-child(3) { animation-delay: 1s; }
+
+    .card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
+    }
+
+    .icon {
+      font-size: 3.2rem;
+      margin-bottom: 18px;
+      animation: pulse 2.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .card h3 {
+      font-size: 1.55rem;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .card p {
+      color: #4b5563;
+      margin-bottom: 22px;
+      min-height: 72px;
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 11px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
+    }
+
+    footer {
+      text-align: center;
+      padding: 28px 15px;
+      color: #6b7280;
+      font-size: 0.95rem;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-container {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+      }
+
+      header h1 {
+        font-size: 2.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="floating-circle circle1"></div>
+  <div class="floating-circle circle2"></div>
+  <div class="floating-circle circle3"></div>
+
+  <div class="page">
+    <nav>
+      <div class="nav-container">
+        <div class="logo">정보 수업 플랫폼</div>
+        <div class="menu">
+          <a href="index.html">홈</a>
+          <a href="data-science.html">데이터 과학</a>
+          <a href="programming.html">프로그래밍</a>
+          <a href="ai.html">인공지능</a>
+        </div>
+      </div>
+    </nav>
+
+    <header>
+      <h1>미래를 배우는 정보 수업</h1>
+      <p>데이터 과학, 프로그래밍, 인공지능으로 세상을 이해하고 직접 만들어보세요</p>
+    </header>
+
+    <main class="container">
+      <section class="intro">
+        <h2>세 가지 핵심 학습 영역</h2>
+        <p>관심 있는 주제를 선택하고 수업 자료와 실습 활동을 시작해보세요.</p>
+      </section>
+
+      <section class="card-grid">
+        <div class="card" id="data">
+          <div class="icon">📊</div>
+          <h3>데이터 과학</h3>
+          <p>데이터를 수집하고 분석하여 의미 있는 결과를 발견하고 시각화합니다.</p>
+          <a href="#" class="btn">탐험 시작</a>
+        </div>
+
+        <div class="card" id="programming">
+          <div class="icon">💻</div>
+          <h3>프로그래밍</h3>
+          <p>코드로 문제를 해결하고 다양한 프로그램과 프로젝트를 직접 만들어봅니다.</p>
+          <a href="#" class="btn">코딩 시작</a>
+        </div>
+
+        <div class="card" id="ai">
+          <div class="icon">🤖</div>
+          <h3>인공지능</h3>
+          <p>AI의 원리를 이해하고 머신러닝과 생성형 AI 활용 방법을 배워봅니다.</p>
+          <a href="#" class="btn">AI 체험하기</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      © 2026 정보 수업 사이트 | Creative Learning with Data, Code, AI
+    </footer>
+  </div>
+
+</body>
+</html>
