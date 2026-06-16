@@ -1,339 +1,110 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>무완's 정보 수업 사이트</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
-      overflow-x: hidden;
-      background: linear-gradient(-45deg, #dbeafe, #eef2ff, #ede9fe, #f0f9ff);
-      background-size: 400% 400%;
-      animation: gradientFlow 12s ease infinite;
-      color: #1f2937;
-      position: relative;
-    }
-
-    @keyframes gradientFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .floating-circle {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.28);
-      animation: float 8s ease-in-out infinite;
-      z-index: 0;
-    }
-
-    .circle1 {
-      width: 180px;
-      height: 180px;
-      top: 80px;
-      left: 5%;
-    }
-
-    .circle2 {
-      width: 120px;
-      height: 120px;
-      top: 350px;
-      right: 10%;
-      animation-delay: 1.5s;
-    }
-
-    .circle3 {
-      width: 220px;
-      height: 220px;
-      bottom: 60px;
-      left: 12%;
-      animation-delay: 3s;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(0px); }
-      50% { transform: translateY(-20px); }
-      100% { transform: translateY(0px); }
-    }
-
-    .page {
-      position: relative;
-      z-index: 1;
-    }
-
-    nav {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .nav-container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 16px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: #2563eb;
-    }
-
-    .menu {
-      display: flex;
-      gap: 24px;
-    }
-
-    .menu a {
-      text-decoration: none;
-      color: #374151;
-      font-weight: 700;
-      position: relative;
-      transition: color 0.2s ease;
-    }
-
-    .menu a::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -4px;
-      width: 0;
-      height: 2px;
-      background: #2563eb;
-      transition: width 0.25s ease;
-    }
-
-    .menu a:hover {
-      color: #2563eb;
-    }
-
-    .menu a:hover::after {
-      width: 100%;
-    }
-
-    header {
-      text-align: center;
-      padding: 110px 20px 70px;
-    }
-
-    header h1 {
-      font-size: 3rem;
-      margin-bottom: 16px;
-      animation: fadeUp 1s ease forwards;
-    }
-
-    header p {
-      font-size: 1.1rem;
-      color: #374151;
-      animation: fadeUp 1s ease forwards;
-      animation-delay: 0.2s;
-      opacity: 0;
-    }
-
-    .container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto 80px;
-    }
-
-    .intro {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeUp 1s ease forwards;
-      animation-delay: 0.4s;
-      opacity: 0;
-    }
-
-    .intro h2 {
-      font-size: 2rem;
-      margin-bottom: 10px;
-    }
-
-    .intro p {
-      color: #4b5563;
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 28px;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      border-radius: 24px;
-      padding: 32px 25px;
-      text-align: center;
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
-      transform: translateY(30px);
-      opacity: 0;
-      animation: fadeUp 0.8s ease forwards;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    .card:nth-child(1) { animation-delay: 0.6s; }
-    .card:nth-child(2) { animation-delay: 0.8s; }
-    .card:nth-child(3) { animation-delay: 1s; }
-
-    .card:hover {
-      transform: translateY(-10px) scale(1.02);
-      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
-    }
-
-    .icon {
-      font-size: 3.2rem;
-      margin-bottom: 18px;
-      animation: pulse 2.8s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.08); }
-      100% { transform: scale(1); }
-    }
-
-    .card h3 {
-      font-size: 1.55rem;
-      margin-bottom: 12px;
-      color: #111827;
-    }
-
-    .card p {
-      color: #4b5563;
-      margin-bottom: 22px;
-      min-height: 72px;
-    }
-
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      padding: 11px 20px;
-      border-radius: 999px;
-      font-weight: 700;
-      color: white;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .btn:hover {
-      transform: scale(1.06);
-      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
-    }
-
-    footer {
-      text-align: center;
-      padding: 28px 15px;
-      color: #6b7280;
-      font-size: 0.95rem;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(24px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .nav-container {
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .menu {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 16px;
-      }
-
-      header h1 {
-        font-size: 2.3rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>내 방 온습도 모니터링</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f5f5f5; text-align: center; padding: 20px; }
+        /* 1. 그래프를 담는 컨테이너 크기를 대폭 키웠습니다 (max-width: 1200px) */
+        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        /* 2. 차트 캔버스의 높이를 고정하여 더 크게 보이도록 설정 */
+        .chart-box { position: relative; width: 100%; height: 500px; }
+    </style>
 </head>
 <body>
-
-  <div class="floating-circle circle1"></div>
-  <div class="floating-circle circle2"></div>
-  <div class="floating-circle circle3"></div>
-
-  <div class="page">
-    <nav>
-      <div class="nav-container">
-        <div class="logo">정보 수업 플랫폼</div>
-        <div class="menu">
-          <a href="index.html">홈</a>
-          <a href="data-science.html">데이터 과학</a>
-          <a href="programming.html">프로그래밍</a>
-          <a href="ai.html">인공지능</a>
+    <div class="container">
+        <h2>🌡️ 실시간 온·습도 모니터링</h2>
+        <p id="status" style="color: gray;">데이터 가져오는 중...</p>
+        <div class="chart-box">
+            <canvas id="iotChart"></canvas>
         </div>
-      </div>
-    </nav>
+    </div>
 
-    <header>
-      <h1>미래를 배우는 정보 수업</h1>
-      <p>데이터 과학, 프로그래밍, 인공지능으로 세상을 이해하고 직접 만들어보세요</p>
-    </header>
+    <script>
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbxw5KUsIFRA9y2mWmHtBsZCGl-lQ6p8GaMc2qVjzC5icsZ_2SIrWNjd2_tLjwYLclz6/exec"; 
+        let myChart;
 
-    <main class="container">
-      <section class="intro">
-        <h2>세 가지 핵심 학습 영역</h2>
-        <p>관심 있는 주제를 선택하고 수업 자료와 실습 활동을 시작해보세요.</p>
-      </section>
+        async function updateChart() {
+            try {
+                const response = await fetch(scriptUrl);
+                if (!response.ok) throw new Error("구글 서버 응답 없음");
+                
+                const rows = await response.json(); 
+                
+                if (rows.error) {
+                    throw new Error(`구글 시트 에러: ${rows.error}`);
+                }
 
-      <section class="card-grid">
-        <div class="card" id="data">
-          <div class="icon">📊</div>
-          <h3>데이터 과학</h3>
-          <p>데이터를 수집하고 분석하여 의미 있는 결과를 발견하고 시각화합니다.</p>
-          <a href="data-science.html" class="btn">탐험 시작</a>
-        </div>
+                const allLabels = [], allTemps = [], allHumids = [];
 
-        <div class="card" id="programming">
-          <div class="icon">💻</div>
-          <h3>프로그래밍</h3>
-          <p>코드로 문제를 해결하고 다양한 프로그램과 프로젝트를 직접 만들어봅니다.</p>
-          <a href="programming.html" class="btn">코딩 시작</a>
-        </div>
+                // 1. 우선 유효한 전체 데이터를 정제하여 배열에 넣습니다.
+                rows.forEach((row, index) => {
+                    if(row.length >= 3) { // 날짜, 온도, 습도 최소 3개 열이 필요하므로 안전하게 3으로 설정
+                        const tempValue = parseFloat(row[1]); // B열: 온도
+                        const humidValue = parseFloat(row[2]); // C열: 습도
+                        
+                        if (!isNaN(tempValue) && !isNaN(humidValue)) {
+                            allLabels.push(`${index + 1}번`); 
+                            allTemps.push(tempValue); 
+                            allHumids.push(humidValue); 
+                        }
+                    }
+                });
 
-        <div class="card" id="ai">
-          <div class="icon">🤖</div>
-          <h3>인공지능</h3>
-          <p>AI의 원리를 이해하고 머신러닝과 생성형 AI 활용 방법을 배워봅니다.</p>
-          <a href="ai.html" class="btn">AI 체험하기</a>
-        </div>
-      </section>
-    </main>
+                if (allLabels.length === 0) {
+                    throw new Error("구글 시트 내에 유효한 숫자 데이터가 비어있습니다.");
+                }
 
-    <footer>
-      © 무완's 정보 수업 사이트 | Creative Learning with Data, Code, AI , 2026
-    </footer>
-  </div>
+                // 2. 🌟 최대 30개의 최근 데이터만 잘라내기 (과거 데이터는 자동 탈락)
+                const maxDisplayCount = 30;
+                let labels = allLabels;
+                let temps = allTemps;
+                let humids = allHumids;
 
+                if (allLabels.length > maxDisplayCount) {
+                    // 뒤에서부터 30개만 남기고 자릅니다.
+                    labels = allLabels.slice(-maxDisplayCount);
+                    temps = allTemps.slice(-maxDisplayCount);
+                    humids = allHumids.slice(-maxDisplayCount);
+                }
+
+                // 3. 그래프 그리기 및 업데이트
+                if (myChart) {
+                    myChart.data.labels = labels;
+                    myChart.data.datasets[0].data = temps;
+                    myChart.data.datasets[1].data = humids;
+                    myChart.update('none');
+                } else {
+                    const ctx = document.getElementById('iotChart').getContext('2d');
+                    myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                { label: '온도 (°C)', data: temps, borderColor: '#ff4d4d', backgroundColor: 'rgba(255, 77, 77, 0.1)', tension: 0.2, fill: false },
+                                { label: '습도 (%)', data: humids, borderColor: '#3399ff', backgroundColor: 'rgba(51, 153, 255, 0.1)', tension: 0.2, fill: false }
+                            ]
+                        },
+                        options: { 
+                            responsive: true,
+                            maintainAspectRatio: false, // 캔버스 높이를 스타일 조절에 맞추기 위해 필수
+                            scales: { 
+                                x: { title: { display: true, text: '데이터 순서 (최신 30개)' } } 
+                            }
+                        }
+                    });
+                }
+                document.getElementById('status').innerText = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
+            } catch (e) {
+                console.error(e);
+                document.getElementById('status').innerText = `데이터 로드 실패 (${e.message})`;
+            }
+        }
+
+        // 10초마다 확인
+        setInterval(updateChart, 10000);
+        updateChart();
+    </script>
 </body>
 </html>
