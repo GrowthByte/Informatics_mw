@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!-- Pixel Diner 완전학습판 · 최종본 (2026-09-02) — 팀원 원본 기반 + 버그 수정 4건 + UX 개선(append 연출·재고 배지·칩 규칙·문구) + 퀴즈-학습카드 정합성 전수 정리 -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#58CC02">
+<title>Pixel Diner — 리스트 · 2차원 · 함수</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+    --green:#58CC02; --green-d:#4CAF00; --green-l:#D7FFB8;
+    --blue:#1CB0F6; --blue-d:#1899D6; --blue-l:#DDF4FF;
+    --gold:#FFC800; --gold-d:#E6A100;
+    --red:#FF4B4B; --red-d:#E63946;
+    --orange:#FF9600;
+    --purple:#B15CFF; --purple-d:#8B2FD6; --purple-l:#F0DEFF;
+    --grey:#E5E5E5; --grey-d:#C4C4C4; --greytext:#AFAFAF;
+    --ink:#4B4B4B; --bg:#FFFFFF; --panel:#F7F7F7;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Fredoka',sans-serif;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27260%27%20height%3D%27260%27%3E%3Cg%20font-size%3D%2730%27%20opacity%3D%270.07%27%3E%3Ctext%20x%3D%2720%27%20y%3D%2750%27%20transform%3D%27rotate%28-12%2020%2050%29%27%3E%F0%9F%8D%94%3C/text%3E%3Ctext%20x%3D%27150%27%20y%3D%2740%27%20transform%3D%27rotate%2810%20150%2040%29%27%3E%F0%9F%8D%9F%3C/text%3E%3Ctext%20x%3D%2780%27%20y%3D%27140%27%20transform%3D%27rotate%28-8%2080%20140%29%27%3E%F0%9F%A5%A4%3C/text%3E%3Ctext%20x%3D%27190%27%20y%3D%27170%27%20transform%3D%27rotate%2814%20190%20170%29%27%3E%F0%9F%A7%80%3C/text%3E%3Ctext%20x%3D%2730%27%20y%3D%27225%27%20transform%3D%27rotate%288%2030%20225%29%27%3E%F0%9F%8D%85%3C/text%3E%3Ctext%20x%3D%27150%27%20y%3D%27245%27%20transform%3D%27rotate%28-10%20150%20245%29%27%3E%F0%9F%A5%AC%3C/text%3E%3C/g%3E%3C/svg%3E"), linear-gradient(180deg,#FFFDF4 0%,#F2F8FF 100%);background-attachment:fixed;color:var(--ink);
+    user-select:none;-webkit-tap-highlight-color:transparent;min-height:100vh;}
+.mono{font-family:'JetBrains Mono',monospace;}
+.wrap{max-width:720px;margin:0 auto;padding:12px;}
+button{font-family:inherit;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 6px;border-bottom:2px solid var(--grey);position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);z-index:20;}
+.stat{display:flex;align-items:center;gap:6px;font-weight:700;font-size:18px;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--green);font-size:20px;}
+
+.btn{border:none;border-radius:16px;font-weight:700;font-size:17px;
+    letter-spacing:.5px;color:#fff;cursor:pointer;padding:14px 22px;text-transform:uppercase;
+    box-shadow:0 5px 0 var(--green-d);transition:all .08s;background:var(--green);}
+.btn:active{transform:translateY(5px);box-shadow:0 0 0;}
+.btn.blue{background:var(--blue);box-shadow:0 5px 0 var(--blue-d);}
+.btn.grey{background:var(--grey);color:var(--greytext);box-shadow:0 5px 0 var(--grey-d);cursor:default;}
+.btn.red{background:var(--red);box-shadow:0 5px 0 var(--red-d);}
+.btn.gold{background:var(--gold);color:#7a5b00;box-shadow:0 5px 0 var(--gold-d);}
+.btn.purple{background:var(--purple);box-shadow:0 5px 0 var(--purple-d);}
+.btn:disabled{background:var(--grey);color:var(--greytext);box-shadow:0 5px 0 var(--grey-d);cursor:default;}
+.btn.sm{font-size:14px;padding:10px 16px;border-radius:13px;}
+
+/* ---------- 맵 ---------- */
+.path{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 0 40px;position:relative;}
+.node-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+.node{width:96px;height:96px;border-radius:50%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:14px;
+    color:#fff;transition:all .1s;position:relative;border:none;}
+.node .big{font-size:34px;line-height:1;}
+.node.done{background:var(--gold);box-shadow:0 8px 0 var(--gold-d);color:#7a5b00;}
+.node.current{background:var(--green);box-shadow:0 8px 0 var(--green-d);animation:bob 1s infinite alternate;}
+.node.locked{background:var(--grey);box-shadow:0 8px 0 var(--grey-d);color:var(--greytext);cursor:not-allowed;}
+.node:active:not(.locked){transform:translateY(8px);box-shadow:0 0 0;}
+@keyframes bob{from{transform:translateY(0);}to{transform:translateY(-8px);}}
+.node-label{font-size:13px;font-weight:700;color:var(--ink);text-align:center;}
+.node-label .sub{font-weight:600;color:var(--greytext);font-size:11px;margin-top:2px;}
+.node.stage{width:118px;height:118px;font-size:14px;}
+.node.stage .big{font-size:40px;}
+.node.stage.open{background:var(--green);box-shadow:0 8px 0 var(--green-d);color:#fff;}
+.node.stage.cleared{background:var(--gold);box-shadow:0 8px 0 var(--gold-d);color:#7a5b00;}
+.stage-stars{font-size:14px;letter-spacing:2px;margin-top:2px;}
+.node.small{width:60px;height:60px;font-size:11px;}
+.node.small .star-face{font-size:24px;line-height:1;}
+.node.small.current{background:var(--purple);box-shadow:0 6px 0 var(--purple-d);}
+.node.small.done{background:var(--purple-l);box-shadow:0 6px 0 #c9a6ea;color:var(--purple-d);}
+.node.check{width:72px;height:72px;}
+.node.check .big{font-size:30px;}
+.node.check.current{background:var(--blue);box-shadow:0 8px 0 var(--blue-d);}
+.node.check.done{background:var(--gold);box-shadow:0 8px 0 var(--gold-d);color:#7a5b00;}
+.node-stars{font-size:15px;letter-spacing:2px;}
+.connector{width:6px;height:14px;background:repeating-linear-gradient(var(--grey-d) 0 5px,transparent 5px 10px);border-radius:3px;}
+.start-bubble{position:absolute;top:-40px;background:#fff;border:2px solid var(--grey);border-radius:14px;
+    padding:5px 12px;font-weight:700;color:var(--green);font-size:13px;box-shadow:0 3px 0 var(--grey);white-space:nowrap;
+    animation:bob 1s infinite alternate;z-index:2;}
+.start-bubble::after{content:"";position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);
+    border-left:8px solid transparent;border-right:8px solid transparent;border-top:9px solid #fff;}
+.sect{width:100%;display:flex;align-items:center;gap:10px;margin:16px 0 4px;}
+.sect .line{flex:1;height:2px;background:var(--grey);border-radius:2px;}
+.sect .tag{font-weight:700;font-size:12px;color:var(--greytext);letter-spacing:1px;}
+
+/* ---------- 게임 ---------- */
+#game-screen,#learn-screen,#quiz-screen{display:none;}
+.game-top{display:flex;align-items:center;gap:12px;padding:10px 4px;}
+.xbtn{font-size:26px;color:var(--greytext);background:none;border:none;cursor:pointer;font-weight:700;}
+.gauge-outer{flex:1;height:22px;background:var(--grey);border-radius:12px;overflow:hidden;position:relative;}
+.gauge-inner{height:100%;width:100%;border-radius:12px;background:var(--green);transition:width .05s linear;}
+.gauge-inner.warn{background:var(--orange);}
+.gauge-inner.danger{background:var(--red);animation:gpulse .4s infinite alternate;}
+@keyframes gpulse{from{opacity:.7;}to{opacity:1;}}
+.gauge-time{position:absolute;right:10px;top:2px;font-weight:700;color:#fff;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.3);}
+.hearts{font-size:20px;letter-spacing:1px;}
+.lvl-row{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 12px;font-weight:700;flex-wrap:wrap;gap:6px;}
+.lvl-tag{background:var(--gold);color:#7a5b00;border-radius:10px;padding:3px 10px;font-size:14px;}
+.prog-dots{font-size:18px;letter-spacing:3px;color:var(--green);}
+.combo-badge{background:#FFE3C2;color:var(--orange);border-radius:10px;padding:3px 10px;font-size:14px;font-weight:700;}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;}
+.confetti-piece{position:absolute;top:-32px;animation:fall 1.9s linear forwards;}
+@keyframes fall{to{transform:translateY(112vh) rotate(400deg);opacity:.85;}}
+
+.need-card{background:var(--panel);border:2px solid var(--grey);border-radius:18px;padding:14px 16px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.need-big{font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;}
+.echo{font-family:'JetBrains Mono',monospace;color:var(--green-d);font-size:14px;min-height:20px;}
+.codeline{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#2B2B33;color:#F0EDE4;
+    border-radius:12px;padding:9px 12px;margin-bottom:12px;overflow-x:auto;white-space:nowrap;}
+.codeline .k{color:#7ED321;} .codeline .s{color:#FFD93B;} .codeline .c{color:#8C8B85;} .codeline .n{color:#FF9C6B;}
+
+.belt-title{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin:0 2px 8px;}
+.belt{display:grid;gap:8px;background:#F0F4F8;border:2px solid var(--grey);border-radius:18px;padding:12px;}
+.slot{background:#fff;border:2px solid var(--grey);border-radius:14px;padding:8px 2px;display:flex;
+    flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all .08s;position:relative;}
+.slot:hover{transform:translateY(-4px);border-color:var(--blue);}
+.slot:active{transform:translateY(0);}
+.keycap{min-width:30px;height:30px;padding:0 5px;border-radius:9px;background:var(--blue);color:#fff;
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;display:flex;align-items:center;
+    justify-content:center;box-shadow:0 3px 0 var(--blue-d);}
+.slot .emoji{font-size:26px;}
+.slot .nm{font-size:10px;color:var(--greytext);font-weight:600;}
+.belt.locked{filter:grayscale(.8) brightness(.95);pointer-events:none;}
+.lock-toast{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:5;
+    border-radius:18px;background:rgba(255,255,255,.55);}
+.lock-toast.show{display:flex;}
+.lock-toast span{background:var(--red);color:#fff;font-weight:700;padding:9px 18px;border-radius:12px;
+    box-shadow:0 4px 0 var(--red-d);font-size:15px;animation:pop .2s;}
+.slot.empty{opacity:.4;cursor:default;border-style:dashed;background:#F7FAFC;}
+.slot.empty:hover{transform:none;border-color:var(--grey);}
+.slot.empty .keycap{background:var(--grey-d);box-shadow:0 3px 0 var(--greytext);}
+.slot.correct{animation:sc-ok .4s;}
+.slot.wrong{animation:sc-bad .4s;}
+@keyframes sc-ok{0%{background:var(--green-l);border-color:var(--green);transform:scale(1.1);}100%{}}
+@keyframes sc-bad{0%,60%{background:#FFE0E0;border-color:var(--red);}15%{transform:translateX(-6px);}45%{transform:translateX(6px);}100%{}}
+@keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.stockbadge{position:absolute;top:-10px;right:-6px;font-size:11px;
+    font-weight:700;border-radius:9px;padding:2px 7px;box-shadow:0 2px 0 rgba(0,0,0,.12);white-space:nowrap;
+    background:#fff;border:1.5px solid var(--grey-d);color:var(--ink);}
+/* append 직관화: 재료가 코드줄로 날아가고, 방금 추가분이 반짝 */
+.fly-emoji{position:fixed;z-index:70;font-size:26px;pointer-events:none;
+    transition:transform .55s cubic-bezier(.5,.9,.4,1),opacity .55s;will-change:transform;}
+.codeline .just{background:rgba(126,211,33,.28);border-radius:6px;padding:0 3px;
+    display:inline-block;animation:justpop .5s;}
+@keyframes justpop{0%{transform:scale(1.7);background:rgba(126,211,33,.7);}100%{}}
+.append-chip{display:inline-block;margin-left:10px;font-size:11.5px;color:#7ED321;font-weight:700;
+    animation:chipfade 1.6s forwards;}
+@keyframes chipfade{0%{opacity:0;transform:translateY(5px);}15%{opacity:1;transform:translateY(0);}75%{opacity:1;}100%{opacity:0;}}
+.rowtag{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;
+    font-weight:700;font-size:13px;color:var(--purple-d);background:var(--purple-l);border-radius:10px;}
+
+/* 명령 칩 (반복) */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center;}
+.chip{border:2px solid var(--grey);background:#fff;border-radius:13px;padding:7px 13px;font-weight:700;
+    font-size:14px;cursor:pointer;transition:all .08s;box-shadow:0 3px 0 var(--grey);color:var(--ink);}
+.chip:active{transform:translateY(3px);box-shadow:0 0 0;}
+.chip.on{background:var(--purple);color:#fff;border-color:var(--purple-d);box-shadow:0 3px 0 var(--purple-d);}
+.chip.param{background:var(--gold);color:#7a5b00;border-color:var(--gold-d);box-shadow:0 3px 0 var(--gold-d);}
+
+.game-body{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;}
+.recipe-box{flex:0 0 210px;background:#FFF8E7;border:3px solid var(--gold);border-radius:20px;
+    padding:14px 14px 10px;box-shadow:0 5px 0 var(--gold-d);}
+.recipe-head{font-weight:700;color:#8a6600;font-size:16px;display:flex;flex-direction:column;}
+.recipe-head small{font-weight:600;color:#b58a2e;font-size:11px;margin-top:2px;}
+.recipe-stack{display:flex;flex-direction:column-reverse;gap:5px;margin-top:12px;}
+.rlayer{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:12px;border:2px solid;
+    font-weight:700;font-size:13.5px;transition:all .12s;}
+.rlayer .rl-emoji{font-size:20px;}
+.rlayer .rl-name{flex:1;}
+.rlayer.future{background:#fff;border-color:var(--grey);color:var(--greytext);opacity:.6;}
+.rlayer.done{background:var(--green-l);border-color:var(--green);color:var(--green-d);}
+.rlayer.cur{background:#FFEFB0;border-color:var(--gold);color:#7a5b00;animation:rpulse .8s infinite alternate;}
+@keyframes rpulse{from{box-shadow:0 0 0 0 rgba(255,200,0,.55);}to{box-shadow:0 0 0 8px rgba(255,200,0,0);}}
+.now-chip{background:var(--gold);color:#fff;border-radius:8px;padding:2px 7px;font-size:11px;}
+.ok-chip{color:var(--green);font-size:15px;}
+.idx-chip{color:var(--greytext);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.rplate{height:10px;background:linear-gradient(#e9e2cf,#cdbf9a);border-radius:0 0 14px 14px;margin-top:8px;}
+.action-col{flex:1;min-width:290px;}
+
+/* ---------- 주방 무대 (함수 스테이지) ---------- */
+.kitchen{position:relative;height:235px;border-radius:18px;overflow:hidden;margin-bottom:10px;display:none;
+    border:3px solid #C89B62;box-shadow:0 4px 0 #A87C4A;
+    background:repeating-linear-gradient(45deg,rgba(120,70,20,.05) 0 3px,transparent 3px 26px),linear-gradient(#F7DCAB,#EFC98C);}
+.counterrow{position:absolute;bottom:0;left:0;right:0;height:24px;background:#58B5AD;border-top:4px solid #3E8F88;}
+.passtile{position:absolute;bottom:0;right:0;width:130px;height:32px;background:#7FCDC6;border-top:4px solid #3E8F88;border-left:4px solid #3E8F88;border-radius:8px 0 0 0;}
+.station{position:absolute;bottom:12px;width:84px;text-align:center;transition:transform .6s cubic-bezier(.4,.7,.4,1),bottom .6s;z-index:5;cursor:pointer;}
+.station.compact{width:58px;}
+.station.compact .chefE{font-size:29px;}
+.station.compact .chefnm{font-size:9px;}
+.station.compact .keycap{width:22px !important;height:22px !important;font-size:12px !important;}
+.station.back{z-index:3;filter:brightness(.95);}
+.backrow{position:absolute;left:0;right:0;bottom:78px;height:18px;background:#58B5AD;border-top:4px solid #3E8F88;display:none;}
+.chefE{font-size:37px;line-height:1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25));display:inline-block;}
+.station.cooking .chefE{animation:cookbounce .32s infinite alternate;}
+@keyframes cookbounce{from{transform:translateY(0) rotate(-5deg);}to{transform:translateY(-8px) rotate(6deg);}}
+.kbubble{display:none;position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:#fff;
+    border:2px solid #E2C89A;border-radius:12px;padding:3px 9px;font-size:15px;white-space:nowrap;
+    box-shadow:0 3px 0 rgba(0,0,0,.12);z-index:6;}
+.kbubble::after{content:"";position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
+    border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #fff;}
+.chefnm{font-size:11px;font-weight:700;color:#6B4A2B;background:rgba(255,255,255,.8);border-radius:8px;margin-top:2px;padding:1px 2px;}
+.mainchef{position:absolute;bottom:12px;right:22px;text-align:center;z-index:5;}
+.passfood{position:absolute;bottom:34px;right:112px;font-size:19px;letter-spacing:-3px;z-index:4;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25));}
+.kdeco{position:absolute;font-size:21px;pointer-events:none;}
+
+/* ---------- 레스토랑 홀 (서빙 스테이지) ---------- */
+.passzone{background:linear-gradient(#FFF6E3,#F7E3BC);border:3px solid #D9B98A;border-radius:16px;padding:10px;box-shadow:0 4px 0 #C7A570;margin-bottom:12px;}
+.hallzone{background:repeating-linear-gradient(90deg,#E5BC83 0 36px,#DCAF72 36px 72px);border:3px solid #B98A52;border-radius:16px;padding:12px;box-shadow:0 4px 0 #96693A, inset 0 0 34px rgba(110,60,15,.18);}
+.tbl{background:linear-gradient(#C08449,#A96F35);border:2.5px solid #8F5B2A;border-radius:14px;padding:6px 2px 7px;cursor:pointer;text-align:center;transition:transform .08s;box-shadow:0 3px 0 #7A4A1E;position:relative;}
+.order-bub{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--gold);border-radius:12px;padding:2px 9px;font-size:13.5px;font-weight:700;color:#7a5b00;white-space:nowrap;z-index:7;box-shadow:0 3px 0 rgba(0,0,0,.15);animation:bob 1s infinite alternate;}
+.order-bub::after{content:"";position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #fff;}
+.tbl.ordering{box-shadow:0 3px 0 #7A4A1E, 0 0 0 3px rgba(255,200,0,.55);}
+.tbl.ordering .cust{animation:cookbounce .6s infinite alternate;}
+.tbl:hover{transform:translateY(-3px);}
+.tbl.servedT{cursor:default;filter:saturate(.9);}
+.tbl .cust{font-size:21px;line-height:1.1;}
+.tbl .cloth{width:36px;height:23px;background:#FFF8EC;border-radius:50%;margin:3px auto 0;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 0 rgba(0,0,0,.18);}
+.tbl .tcoord{font-size:10px;font-weight:700;color:#7A4E1F;background:#FFF3DC;border-radius:6px;display:inline-block;padding:0 5px;margin-top:4px;}
+.tbl.correct{animation:sc-ok .4s;}
+.tbl.wrong{animation:sc-bad .4s;}
+.hallsign{background:#6B4A2B !important;color:#FFE9C2 !important;}
+.walk-emoji{position:fixed;z-index:70;font-size:26px;line-height:1;text-align:center;pointer-events:none;
+    transition:transform .8s cubic-bezier(.45,.6,.4,1);will-change:transform;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3));}
+
+/* ---------- 키보드 전용: 마우스 클릭 차단 ---------- */
+/* 게임 플레이 중에만 마우스 차단 — 맵·학습카드·퀴즈는 마우스 허용 */
+.kbonly #game-screen .slot, .kbonly #game-screen .tbl,
+.kbonly #game-screen .station, .kbonly #game-screen .chip{pointer-events:none;}
+
+/* ---------- 오버레이 ---------- */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;
+    align-items:center;justify-content:center;padding:20px;}
+.overlay.show{display:flex;}
+.sheet{background:#fff;border-radius:22px;padding:26px;max-width:400px;width:100%;text-align:center;
+    box-shadow:0 10px 0 rgba(0,0,0,.15);animation:pop .25s cubic-bezier(.34,1.56,.64,1);}
+.sheet .icon{font-size:60px;}
+.sheet h3{font-size:24px;margin:8px 0;}
+.sheet .stars{font-size:36px;letter-spacing:6px;margin:8px 0;}
+.sheet p{color:var(--greytext);font-weight:600;margin-bottom:16px;font-size:14px;}
+.meterbar{height:16px;background:var(--grey);border-radius:9px;overflow:hidden;margin:10px 0 6px;}
+.meterbar i{display:block;height:100%;border-radius:9px;transition:width .7s cubic-bezier(.34,1.3,.64,1);}
+#preview{background:rgba(18,18,20,.78);}
+.preview-card{background:#fff;border-radius:24px;padding:22px;max-width:360px;width:100%;text-align:center;
+    box-shadow:0 10px 0 rgba(0,0,0,.2);animation:pop .25s cubic-bezier(.34,1.56,.64,1);}
+.preview-card h3{font-size:21px;}
+.preview-count{font-size:56px;font-weight:700;color:var(--green);margin-top:8px;line-height:1;}
+.pv-pop{animation:pop .3s;}
+.preview-stack .rlayer{opacity:1;background:#FFF8E7;border-color:var(--gold);color:#7a5b00;font-size:14px;padding:9px 11px;}
+
+/* ---------- 학습 카드 ---------- */
+.learn-card{background:#fff;border:3px solid var(--grey);border-radius:22px;padding:22px;margin-top:10px;
+    box-shadow:0 6px 0 var(--grey);}
+.learn-card.retry{border-color:var(--purple);box-shadow:0 6px 0 var(--purple-d);}
+.eyebrow{font-weight:700;font-size:12px;letter-spacing:1.5px;color:var(--greytext);}
+.learn-card h2{font-size:23px;margin:6px 0 10px;}
+.learn-card p{font-size:15px;font-weight:500;line-height:1.65;color:#5f5f5f;}
+.learn-card p b{color:var(--ink);}
+.goalbar{background:var(--blue-l);border-radius:14px;padding:10px 14px;font-size:13.5px;font-weight:600;
+    color:#0a6a9c;margin-bottom:14px;}
+.codeblock{font-family:'JetBrains Mono',monospace;font-size:13px;background:#2B2B33;color:#F0EDE4;
+    border-radius:14px;padding:14px 15px;margin:14px 0;white-space:pre;overflow-x:auto;line-height:1.7;}
+.codeblock .k{color:#7ED321;} .codeblock .s{color:#FFD93B;} .codeblock .c{color:#8C8B85;} .codeblock .n{color:#FF9C6B;}
+.dots{display:flex;gap:6px;justify-content:center;margin:16px 0 4px;}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--grey);display:block;}
+.dots i.on{background:var(--green);width:24px;border-radius:5px;}
+.dots i.past{background:var(--green-l);}
+.btnrow{display:flex;gap:10px;margin-top:14px;}
+.btnrow .btn{flex:1;}
+
+/* ---------- 퀴즈 ---------- */
+.qhead{display:flex;align-items:center;gap:12px;padding:10px 4px;}
+.qbar{flex:1;height:16px;background:var(--grey);border-radius:9px;overflow:hidden;}
+.qbar i{display:block;height:100%;background:var(--green);border-radius:9px;transition:width .3s;}
+.qcount{font-weight:700;font-size:14px;color:var(--greytext);}
+.qcard{background:#fff;border-radius:20px;padding:6px 4px 20px;}
+.qcard h2{font-size:20px;line-height:1.45;margin:14px 2px 14px;}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;
+    border:2px solid var(--grey);border-bottom-width:4px;border-radius:16px;padding:14px 16px;margin-bottom:10px;
+    font-family:inherit;font-weight:600;font-size:15.5px;color:var(--ink);cursor:pointer;transition:all .08s;}
+.opt:hover{background:var(--panel);}
+.opt.pick{border-color:var(--blue);background:var(--blue-l);color:var(--blue-d);}
+.opt.ok{border-color:var(--green);background:var(--green-l);color:var(--green-d);}
+.opt.no{border-color:var(--red);background:#FFE0E0;color:var(--red-d);}
+.opt .lt{width:26px;height:26px;border-radius:8px;border:2px solid var(--grey-d);display:flex;
+    align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;flex:0 0 auto;}
+.opt.pick .lt{border-color:var(--blue);} .opt.ok .lt{border-color:var(--green);} .opt.no .lt{border-color:var(--red);}
+.qcells{display:grid;gap:9px;margin:6px 0 4px;}
+.qcell{background:#fff;border:2px solid var(--grey);border-bottom-width:4px;border-radius:14px;padding:11px 4px;
+    font-family:inherit;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer;text-align:center;}
+.qcell b{display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue-d);font-weight:700;margin-bottom:3px;}
+.qcell.pick{border-color:var(--blue);background:var(--blue-l);}
+.qcell.ok{border-color:var(--green);background:var(--green-l);}
+.qcell.no{border-color:var(--red);background:#FFE0E0;}
+.fbbar{position:sticky;bottom:0;border-radius:20px 20px 0 0;padding:16px;margin:8px -4px 0;}
+.fbbar.ok{background:var(--green-l);} .fbbar.no{background:#FFE0E0;}
+.fbbar h4{font-size:18px;margin-bottom:4px;}
+.fbbar.ok h4{color:var(--green-d);} .fbbar.no h4{color:var(--red-d);}
+.fbbar p{font-size:14px;font-weight:600;color:#5f5f5f;margin-bottom:12px;}
+/* ── v2: 입력형 문항·연습모드·보너스·퍼펙트 ── */
+.qinput{width:100%;box-sizing:border-box;border:2.5px solid var(--grey);border-radius:14px;padding:12px 14px;font-family:'Menlo','Consolas',monospace;font-size:17px;font-weight:700;color:var(--ink);background:#fff;outline:none;}
+.qinput:focus{border-color:var(--blue);}
+.qans{margin-top:8px;font-weight:700;font-size:14px;color:var(--greytext);}
+.station.sel{outline:3px solid var(--gold);outline-offset:2px;border-radius:12px;}
+.perf-badge{display:inline-block;background:#FFF4D6;border:2px solid var(--gold);color:#8A6600;font-weight:800;font-size:14px;border-radius:12px;padding:6px 14px;margin:4px 0 2px;}
+.bonus-opts{display:flex;flex-direction:column;gap:8px;margin:10px 0 2px;text-align:left;}
+</style>
+</head>
+<body class="kbonly">
+
+<!-- ============ 맵 ============ -->
+<div id="map-screen" class="wrap">
+    <div class="topbar">
+        <div class="brand">🍔 PIXEL DINER</div>
+        <div style="display:flex;gap:14px;">
+            <div class="stat" style="color:var(--gold);">⭐ <span id="map-stars">0</span>/9</div>
+            <div class="stat" style="color:var(--purple);">🎓 <span id="map-badges">0</span>/3</div>
+            <button id="bgm-btn" onclick="toggleBgm()" title="배경음악" style="background:#fff;border:2px solid var(--grey);border-radius:12px;font-size:17px;padding:2px 10px;cursor:pointer;box-shadow:0 2px 0 var(--grey);">🔊</button>
+        </div>
+    </div>
+    <p style="text-align:center;color:var(--greytext);font-weight:600;font-size:13px;margin:14px 0 0;">
+        원하는 차시(주방)를 골라 시작하세요! <b style="color:var(--purple)">★</b> 3개를 모으면 <b style="color:var(--blue)">🎓 확인 문제</b>가 열려요 ·
+        5문제 중 <b style="color:var(--ink)">4문제</b>를 맞히면 🎓 배지 획득!
+    </p>
+    <div id="path" class="path"></div>
+    <div style="text-align:center;padding:0 0 30px;display:flex;gap:14px;justify-content:center;">
+        <button onclick="toggleRelax()" id="relax-btn" style="background:none;border:none;color:var(--greytext);font-family:inherit;font-weight:600;font-size:12px;text-decoration:underline;cursor:pointer;">천천히 모드 끄기</button>
+        <button onclick="togglePractice()" id="practice-btn" style="background:none;border:none;color:var(--greytext);font-family:inherit;font-weight:600;font-size:12px;text-decoration:underline;cursor:pointer;">⏱️ 연습 모드 켜기</button>
+        <button onclick="exportLog()" style="background:none;border:none;color:var(--greytext);font-family:inherit;font-weight:600;font-size:12px;text-decoration:underline;cursor:pointer;">📊 학습 기록 CSV</button>
+        <button onclick="resetProgress()" style="background:none;border:none;color:var(--greytext);font-family:inherit;font-weight:600;font-size:12px;text-decoration:underline;cursor:pointer;">진행도 초기화</button>
+    </div>
+</div>
+
+<!-- ============ 학습 카드 ============ -->
+<div id="learn-screen" class="wrap">
+    <div class="game-top"><button class="xbtn" onclick="showMap()">✕</button>
+        <div style="flex:1;font-weight:700;font-size:15px;" id="learn-title">개념 배우기</div></div>
+    <div id="learn-body"></div>
+</div>
+
+<!-- ============ 게임 ============ -->
+<div id="game-screen" class="wrap">
+    <div class="game-top">
+        <button class="xbtn" onclick="quitToMap()">✕</button>
+        <div class="gauge-outer"><div id="gauge" class="gauge-inner"></div><div id="gauge-time" class="gauge-time">15.0s</div></div>
+        <div id="hearts" class="hearts">❤️❤️❤️</div>
+    </div>
+    <div class="lvl-row">
+        <span class="lvl-tag" id="lvl-tag">★ Lv.1</span>
+        <span id="combo-badge" class="combo-badge" style="display:none;">🔥 x2</span>
+        <span class="prog-dots" id="prog-dots">○○○</span>
+    </div>
+    <div class="game-body">
+        <div class="recipe-box">
+            <div class="recipe-head" id="recipe-head">📋 레시피<small>이 순서로 쌓아요 (아래→위)</small></div>
+            <div id="recipe-stack" class="recipe-stack"></div>
+            <div class="rplate"></div>
+        </div>
+        <div class="action-col">
+            <div class="need-card">
+                <div><div style="font-size:12px;color:var(--greytext);font-weight:700;" id="need-label">🔍 지금 필요한 재료</div>
+                    <div id="need-big" class="need-big"></div></div>
+                <div style="text-align:right;"><div style="font-size:12px;color:var(--greytext);" id="need-hint">칸의 번호키를 누르세요</div>
+                    <div id="echo" class="echo">&nbsp;</div></div>
+            </div>
+            <div id="codeline" class="codeline"></div>
+            <div id="kitchen" class="kitchen"></div>
+            <div id="chips" class="chips"></div>
+            <div class="belt-title"><span id="belt-title">🛒 컨베이어 벨트</span>
+                <span style="color:var(--greytext);font-weight:600;font-size:12px;" id="belt-sub">칸 위 숫자 = 인덱스</span></div>
+            <div style="position:relative;">
+                <div id="belt" class="belt"></div>
+                <div id="lock-toast" class="lock-toast"><span>🚫 앗! 틀렸어요 — 잠깐 멈춤!</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ 확인 문제 ============ -->
+<div id="quiz-screen" class="wrap">
+    <div class="qhead"><button class="xbtn" onclick="showMap()">✕</button>
+        <div class="qbar"><i id="qbar-i" style="width:0%"></i></div>
+        <span class="qcount" id="qcount">1/5</span></div>
+    <div id="quiz-body" class="qcard"></div>
+</div>
+
+<div id="confetti"></div>
+
+<div id="preview" class="overlay">
+    <div class="preview-card">
+        <h3 id="preview-title">🔔 새 주문이 들어왔어요!</h3>
+        <p style="color:var(--greytext);font-weight:600;margin:2px 0 0;font-size:13px;" id="preview-sub">이 레시피를 기억하세요 (아래→위)</p>
+        <div id="preview-stack" class="recipe-stack" style="max-width:240px;margin:14px auto 0;"></div>
+        <div class="rplate" style="max-width:240px;margin:0 auto;"></div>
+        <div id="preview-count" class="preview-count">3</div>
+    </div>
+</div>
+
+<div id="overlay" class="overlay">
+    <div class="sheet">
+        <div id="ov-icon" class="icon">🎉</div>
+        <h3 id="ov-title">레벨 클리어!</h3>
+        <div id="ov-stars" class="stars"></div>
+        <div id="ov-extra"></div>
+        <p id="ov-msg"></p>
+        <button id="ov-btn" class="btn" onclick="overlayAction()">계속</button>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════ 사운드 ═══════════ */
+let actx=null;
+function snd(t){
+    try{
+        if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+        if(actx.state==='suspended') actx.resume();
+        const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);
+        const n=actx.currentTime;
+        if(t==='ok'){o.frequency.setValueAtTime(660,n);o.frequency.exponentialRampToValueAtTime(990,n+.08);g.gain.setValueAtTime(.15,n);g.gain.exponentialRampToValueAtTime(.01,n+.1);o.start(n);o.stop(n+.1);}
+        else if(t==='bad'){o.type='sawtooth';o.frequency.setValueAtTime(200,n);o.frequency.exponentialRampToValueAtTime(120,n+.15);g.gain.setValueAtTime(.15,n);g.gain.exponentialRampToValueAtTime(.01,n+.2);o.start(n);o.stop(n+.2);}
+        else if(t==='done'){o.type='triangle';[523,659,784,1046].forEach((f,i)=>o.frequency.setValueAtTime(f,n+i*.09));g.gain.setValueAtTime(.2,n);g.gain.exponentialRampToValueAtTime(.01,n+.5);o.start(n);o.stop(n+.5);}
+        else if(t==='star'){o.type='triangle';[784,1046,1318].forEach((f,i)=>o.frequency.setValueAtTime(f,n+i*.12));g.gain.setValueAtTime(.25,n);g.gain.exponentialRampToValueAtTime(.01,n+.6);o.start(n);o.stop(n+.6);}
+        else if(t==='tick'){o.frequency.setValueAtTime(520,n);g.gain.setValueAtTime(.1,n);g.gain.exponentialRampToValueAtTime(.01,n+.09);o.start(n);o.stop(n+.09);}
+    }catch(e){}
+}
+
+/* ═══════════ 재료 ═══════════ */
+const BREAD='🍞 빵';
+const FILLINGS=['🥩 패티','🧀 치즈','🥬 양상추','🍅 토마토','🥓 베이컨','🧅 양파','🥒 피클','🍄 버섯'];
+const POOL=[BREAD,...FILLINGS];
+const em = s => s.split(' ')[0];
+const nm = s => s.split(' ')[1]||s;
+const PASS = 0.8;
+
+/* ═══════════ 스테이지 데이터 ═══════════ */
+const STAGES=[
+{
+  key:'index', icon:'🍔', name:'리스트 인덱싱', sub:'번호로 재료 꺼내기', mode:'index',
+  goal:'재료를 순서대로 리스트에 담고, 0부터 시작하는 인덱스로 원하는 칸을 찾을 수 있다.',
+  learn:[
+    {t:'리스트는 재료 보관함', b:'재료를 하나씩 따로 두면 순서를 지킬 수 없어요. 리스트는 여러 재료를 한 이름으로 묶어 <b>순서대로</b> 보관하는 상자예요.',
+     c:"재료 = ['빵', '패티', '치즈']\n# 순서 그대로 한 상자에 보관!"},
+    {t:'칸 번호는 0부터', b:'벨트 칸 위에 붙은 숫자가 바로 <b>인덱스</b>예요. 첫 칸이 1번이 아니라 <b>0번</b>이라는 점을 꼭 기억하세요. 인덱스만 알면 어떤 칸이든 바로 꺼낼 수 있어요.',
+     c:"재료 = ['빵', '패티', '치즈', '양상추']\n#        [0]   [1]    [2]    [3]\nprint(재료[2])   # 치즈"},
+    {t:'거꾸로: 몇 번 칸에 있을까?', b:'게임에서 하던 일이 바로 이거예요. 재료가 <b>몇 번 칸</b>에 있는지 맨 앞(0번)부터 차례로 짚어 세면 돼요. 세 번째 재료의 번호는 3이 아니라 <b>2</b>!',
+     c:"재료 = ['빵', '패티', '치즈', '양상추']\n#        [0]   [1]    [2]    [3]\n# '치즈'는 몇 번? → 2번\nprint(재료[2])   # 치즈"}
+  ],
+  hint:[
+    {t:'번호를 손으로 짚어 보기', b:'재료가 4개면 번호는 <b>0, 1, 2, 3</b>이에요. 마지막 번호는 언제나 개수보다 <b>1 작아요</b>.',
+     c:"재료 = ['빵', '패티', '치즈', '양상추']\n#        [0]   [1]    [2]    [3]\n# 개수는 4개, 마지막 번호는 3"},
+    {t:'재료에서 번호 찾기', b:'문제가 거꾸로 "재료가 몇 번 칸?"을 물어도 똑같아요. 맨 앞부터 <b>0, 1, 2…</b> 차례로 짚으면 번호가 나와요.',
+     c:"재료 = ['빵', '패티', '치즈']\n#        [0]   [1]    [2]\n# 치즈는? 0, 1, 2 → 2번"}
+  ],
+  levels:[{time:18,goal:2,fill:[1,1],belt:5},{time:15,goal:3,fill:[2,2],belt:6},{time:12,goal:3,fill:[3,3],belt:8}],
+  quiz:[
+    {type:'mc',q:'무엇이 출력될까요?',code:"재료 = ['빵', '패티', '치즈', '양상추']\nprint(재료[2])",
+     opts:['빵','패티','치즈','양상추'],a:2,why:'번호는 0부터 세니까 2번은 세 번째 칸인 치즈예요.'},
+    {type:'cell',q:'재료[1] 이 가리키는 칸을 누르세요.',cells:['🍞 빵','🥩 패티','🧀 치즈','🥬 양상추'],a:1,
+     why:'0번이 빵, 1번이 패티예요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"메뉴 = ['콜라', '사이다', '주스']\nprint(메뉴[0])",
+     opts:['콜라','사이다','주스','오류가 나요'],a:0,why:'0번은 두 번째가 아니라 맨 앞 칸이에요.'},
+    {type:'cell',q:'재료[3] 이 가리키는 칸을 누르세요.',cells:['🍞 빵','🥩 패티','🧀 치즈','🥬 양상추','🍅 토마토'],a:3,
+     why:'0, 1, 2, 3 — 네 번째 칸이 3번이에요.'},
+    {type:'mc',q:"'치즈'가 출력되려면 □에 들어갈 숫자는?",code:"재료 = ['빵', '패티', '치즈', '양상추']\nprint(재료[□])",
+     opts:['1','2','3','4'],a:1,why:'치즈는 세 번째 칸 — 번호는 0부터 세니까 2예요. 게임에서 재료 찾을 때 하던 일과 같아요!'},
+    {type:'input',q:"'양상추'가 출력되도록 빈칸 전체를 직접 입력해 보세요.",code:"재료 = ['빵', '패티', '치즈', '양상추']\nprint(____)",
+     a:'재료[3]',ph:'예: 재료[0]',why:'양상추는 0, 1, 2, 3 — 3번 칸이니까 재료[3]이에요.'},
+    {type:'input',q:'무엇이 출력될까요? 결과를 직접 입력하세요.',code:"재료 = ['빵', '패티', '치즈']\nprint(재료[1])",
+     a:'패티',accept:['패티',"'패티'"],ph:'재료 이름 입력',why:'1번 칸은 두 번째인 패티예요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"음료 = ['물', '콜라', '주스', '우유']\nprint(음료[3])",
+     opts:['물','콜라','주스','우유'],a:3,why:'0, 1, 2, 3 — 3번은 네 번째 칸인 우유예요.'},
+    {type:'cell',q:'재료[0] 이 가리키는 칸을 누르세요.',cells:['🥬 양상추','🍅 토마토','🥓 베이컨','🧀 치즈'],a:0,
+     why:'맨 앞 칸이 언제나 0번이에요.'}
+  ],
+  requiz:[
+    {type:'cell',q:'세트[0] 이 가리키는 칸을 누르세요.',cells:['🍟 감자','🥤 콜라','🍗 너겟'],a:0,why:'맨 앞 칸이 0번이에요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"세트 = ['감자', '콜라']\nprint(세트[1])",
+     opts:['감자','콜라','1','오류가 나요'],a:1,why:'1번 칸은 두 번째인 콜라예요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"세트 = ['감자', '콜라', '너겟']\nprint(세트[2])",
+     opts:['감자','콜라','너겟','오류가 나요'],a:2,why:'2번은 세 번째 칸인 너겟이에요.'},
+    {type:'cell',q:'세트[1] 이 가리키는 칸을 누르세요.',cells:['🍟 감자','🥤 콜라','🍗 너겟'],a:1,why:'0번 다음, 두 번째 칸이 1번이에요.'},
+    {type:'mc',q:"'너겟'이 출력되려면 □에 들어갈 숫자는?",code:"세트 = ['감자', '콜라', '너겟']\nprint(세트[□])",
+     opts:['0','1','2','3'],a:2,why:'너겟은 세 번째 칸이라 번호는 2예요.'},
+    {type:'input',q:"'너겟'이 출력되도록 빈칸 전체를 직접 입력하세요.",code:"세트 = ['감자', '콜라', '너겟']\nprint(____)",
+     a:'세트[2]',ph:'예: 세트[0]',why:'너겟은 세 번째 칸, 번호는 2라서 세트[2]예요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"세트 = ['감자', '콜라', '너겟']\nprint(세트[0])",
+     opts:['감자','콜라','너겟','0'],a:0,why:'0번은 맨 앞 칸인 감자예요.'},
+    {type:'cell',q:'세트[2] 가 가리키는 칸을 누르세요.',cells:['🍟 감자','🥤 콜라','🍗 너겟','🍦 아이스크림'],a:2,
+     why:'0, 1, 2 — 세 번째 칸이 2번이에요.'}
+  ]
+},
+{
+  key:'chefs', icon:'🧑‍🍳', name:'함수', sub:'보조셰프 불러 요리하기', mode:'chefs',
+  goal:'버거마다 전담 보조셰프(함수)가 있고, 주문에 맞는 함수를 이름으로 호출할 수 있다.',
+  learn:[
+    {t:'보조셰프 = 함수', b:'주방에는 버거 종류마다 <b>전담 보조셰프</b>가 있어요. <b>def</b>로 셰프의 레시피를 한 번 적어 두면, 언제든 이름만 불러 요리를 맡길 수 있어요.',
+     c:"def 불고기버거():\n    return ['빵', '불고기', '양상추', '빵']"},
+    {t:'이름 뒤에 괄호 — 호출', b:'셰프를 부를 때는 <b>이름()</b> 처럼 괄호를 붙여요. 부르는 순간 레시피가 실행되고 버거가 나와요. 적어 두기만 하면 아무 일도 일어나지 않아요!',
+     c:"불고기버거()   # ['빵', '불고기', '양상추', '빵']"},
+    {t:'주문마다 맞는 셰프를', b:'주문이 밀려와도 걱정 없어요. <b>주문에 맞는 함수</b>를 골라 부르면 끝! 같은 함수는 언제 불러도 <b>언제나 같은 버거</b>를 만들어요.',
+     c:"새우버거()\n치즈버거()\n새우버거()\n# 새우버거 2개 + 치즈버거 1개 완성!"},
+    {t:'매개변수 — 괄호 안 숫자', b:'주문이 <b>2개</b>면? 부를 때 <b>괄호 안에 개수</b>를 넣어 셰프에게 알려줘요. 이렇게 함수에 전달하는 값이 <b>매개변수</b>, 함수가 만든 버거를 돌려주는 것이 <b>return</b>이에요. Lv.2부터는 셰프 번호 다음에 <b>개수</b>도 눌러요!',
+     c:"def 불고기버거(개수):\n    return '🍔' * 개수\n\n불고기버거(2)   # 🍔🍔 — 2개를 돌려줘요!"}
+  ],
+  hint:[
+    {t:'적어두기 ≠ 부르기', b:'<b>def</b>는 레시피를 적어 두는 것뿐이에요. <b>이름()</b> 하고 불러야 비로소 요리가 시작돼요.',
+     c:"def 치킨버거():\n    return ['빵', '치킨', '피클', '빵']\n# 아직 버거 0개\n치킨버거()   # 이제 1개!"},
+    {t:'레시피를 보고 셰프 찾기', b:'주문서에 재료만 있어도 괜찮아요. 각 셰프의 <b>return 뒤 레시피</b>를 읽고, 주문과 같은 버거를 만드는 셰프를 부르면 돼요.',
+     c:"def 새우버거():\n    return ['빵', '새우', '양상추', '빵']\n# 주문: [빵, 새우, 양상추, 빵] → 새우버거()"}
+  ],
+  levels:[{time:20,goal:3,chefs:2,named:true},{time:20,goal:3,chefs:3,named:false,pr:[1,2]},{time:18,goal:4,chefs:4,named:false,pr:[2,3]}],
+  quiz:[
+    {type:'mc',q:'빈칸에 들어갈 말은?',code:"____ 불고기버거():\n    return ['빵', '불고기', '빵']",
+     opts:['for','def','if','print'],a:1,why:'함수(보조셰프 레시피)를 만들 때는 def로 시작해요.'},
+    {type:'mc',q:'무엇이 만들어질까요?',code:"def 새우버거():\n    return ['빵', '새우', '빵']\n\n새우버거()",
+     opts:["['빵', '새우', '빵']","['새우']","['빵', '빵']","아무것도 안 만들어져요"],a:0,why:'부르는 순간 레시피가 실행되어 그대로 만들어져요.'},
+    {type:'mc',q:'치즈버거 셰프를 부르는 방법은?',opts:['치즈버거()','치즈버거','def 치즈버거()','부른다 치즈버거'],a:0,
+     why:'이름 뒤에 괄호를 붙여야 호출이에요.'},
+    {type:'order',q:'주방이 돌아가는 순서대로 눌러 보세요.',
+     blocks:['def로 셰프의 레시피를 적어 둔다','주문이 들어온다','맞는 셰프(함수)를 부른다','레시피가 실행되어 버거가 나온다'],
+     why:'적어 두기 → 주문 → 호출 → 실행. 게임에서 한 그대로예요!'},
+    {type:'mc',q:'버거는 모두 몇 개 만들어질까요?',code:"def 치킨버거():\n    return ['빵', '치킨', '빵']\n\n치킨버거()\n치킨버거()\n치킨버거()",
+     opts:['1개','2개','3개','0개'],a:2,why:'세 번 불렀으니 같은 버거가 3개! 함수는 몇 번이든 다시 쓸 수 있어요.'},
+    {type:'mc',q:'불고기버거(2) 에서 괄호 안 숫자 2의 뜻은?',opts:['버거를 만들 개수 (매개변수)','재료의 인덱스','셰프의 번호','버거의 가격'],a:0,
+     why:'괄호 안에 넣어 함수에 전달하는 값이 매개변수예요. 여기서는 만들 개수!'},
+    {type:'mc',q:'무엇이 만들어질까요?',code:"def 치즈버거(개수):\n    return '🍔' * 개수\n\n치즈버거(2)",
+     opts:['🍔🍔','🍔','개수','아무것도 안 만들어져요'],a:0,why:"매개변수 개수에 2가 들어가 '🍔' * 2 — 버거 2개를 돌려줘요(return)."},
+    {type:'input',q:'새우버거 셰프를 호출하는 코드를 직접 입력하세요.',code:"def 새우버거():\n    return ['빵', '새우', '빵']",
+     a:'새우버거()',ph:'이름과 괄호',why:'이름 뒤에 괄호 () 를 붙여야 호출이에요.'},
+    {type:'input',q:'치킨버거를 3개 주문하는 호출 코드를 직접 입력하세요.',code:"def 치킨버거(개수):\n    return '🍔' * 개수",
+     a:'치킨버거(3)',ph:'예: 이름(숫자)',why:'괄호 안에 개수 3을 넣어 전달해요 — 이것이 매개변수!'}
+  ],
+  requiz:[
+    {type:'mc',q:'빈칸에 들어갈 말은?',code:"____ 감자튀김():\n    return ['감자']",
+     opts:['def','for','return','len'],a:0,why:'함수 정의는 언제나 def로 시작해요.'},
+    {type:'mc',q:'무엇이 만들어질까요?',code:"def 콜라세트():\n    return ['콜라', '감자']\n\n콜라세트()",
+     opts:["['콜라', '감자']","['콜라']","['감자']","아무것도 안 만들어져요"],a:0,why:'호출하면 return 뒤의 레시피가 그대로 나와요.'},
+    {type:'mc',q:'새우버거 셰프를 부르는 방법은?',opts:['새우버거()','새우버거!','def 새우버거','print 새우버거'],a:0,why:'이름 뒤 괄호가 호출이에요.'},
+    {type:'order',q:'주방이 돌아가는 순서대로 눌러 보세요.',
+     blocks:['레시피를 적어 둔다','주문을 확인한다','맞는 함수를 부른다','버거가 완성된다'],
+     why:'정의 → 주문 → 호출 → 완성 순서예요.'},
+    {type:'mc',q:'버거는 모두 몇 개 만들어질까요?',code:"def 치즈버거():\n    return ['빵', '패티', '치즈', '빵']\n\n치즈버거()\n치즈버거()",
+     opts:['1개','2개','3개','4개'],a:1,why:'두 번 불렀으니 2개예요.'},
+    {type:'mc',q:'감자튀김(3) 은 감자튀김을 몇 개 만들까요?',code:"def 감자튀김(개수):\n    return '🍟' * 개수",
+     opts:['1개','3개','0개','알 수 없어요'],a:1,why:'괄호 안 3이 매개변수(개수)로 전달되어 3개를 만들어요.'},
+    {type:'input',q:'콜라세트 셰프를 호출하는 코드를 직접 입력하세요.',code:"def 콜라세트():\n    return ['콜라', '감자']",
+     a:'콜라세트()',ph:'이름과 괄호',why:'이름 뒤 괄호가 호출이에요.'},
+    {type:'mc',q:'무엇이 만들어질까요?',code:"def 새우버거(개수):\n    return '🍤' * 개수\n\n새우버거(2)",
+     opts:['🍤🍤','🍤','2','오류가 나요'],a:0,why:'개수 자리에 2가 들어가 🍤 2개를 돌려줘요.'}
+  ]
+},
+{
+  key:'grid', icon:'🛎️', name:'2차원 리스트', sub:'좌표 보고 서빙하기', mode:'grid',
+  goal:'음식 선반(1차원)에서 인덱스로 집고, 테이블(2차원)의 [행][열] 좌표로 정확히 서빙할 수 있다.',
+  learn:[
+    {t:'주방에서 나온 음식 선반', b:'주방에서 완성된 음식은 <b>선반(리스트)</b>에 순서대로 놓여요. 1단계에서 배운 그대로, <b>인덱스 번호</b>로 원하는 음식을 집어요.',
+     c:"음식 = ['햄버거', '감자튀김', '콜라']\n음식[1]   # 감자튀김 집기!"},
+    {t:'테이블은 [행][열] 좌표', b:'홀의 테이블은 여러 줄로 놓여 있어서 번호 하나로는 부족해요. <b>[행][열]</b> — 아래로 몇 줄, 오른쪽으로 몇 칸인지 두 개의 번호로 자리를 찾아요. 둘 다 <b>0부터</b>!',
+     c:"테이블[1][2]   # 아래로 1줄, 오른쪽 2칸\n테이블[0][0]   # 맨 앞줄 첫 테이블"},
+    {t:'집고 → 서빙! 알바생의 하루', b:'주문이 오면 두 단계예요. ① 선반에서 <b>음식[번호]</b>로 집고 ② <b>테이블[행][열]</b> 좌표로 가져다 드리면 끝!',
+     c:"음식[3]        # 1) 감자튀김 집기\n테이블[1][2]   # 2) 이 좌표로 서빙!"}
+  ],
+  hint:[
+    {t:'아래로 먼저, 오른쪽은 나중', b:'<b>테이블[1][0]</b>은 아래로 1줄 → 오른쪽 0칸이에요. 두 번호의 순서가 바뀌면 완전히 다른 손님에게 가요!',
+     c:"테이블[1][0]   # 1줄의 0번 테이블\n테이블[0][1]   # 0줄의 1번 테이블"},
+    {t:'행 번호부터 차근차근', b:'좌표를 입력할 땐 <b>행 번호 먼저, 열 번호 나중</b>이에요. 왼쪽의 [0], [1] 줄 번호를 보고 내려간 뒤, 위의 열 번호를 보고 옆으로 가요.',
+     c:"# 테이블[2][1] 찾기\n# ① 왼쪽 [2] 줄로 내려간다\n# ② 위 [1] 칸으로 간다"}
+  ],
+  levels:[{time:20,goal:3,rows:2,cols:2,shelf:5},{time:18,goal:4,rows:2,cols:3,shelf:6},{time:16,goal:4,rows:3,cols:3,shelf:7}],
+  quiz:[
+    {type:'grid',q:'테이블[1][2] 에 해당하는 칸을 누르세요.',
+     grid:[['🍞 빵','🥩 패티','🧀 치즈'],['🍞 빵','🥬 양상추','🍅 토마토']],a:[1,2],
+     why:'1번 테이블(두 번째 줄)의 2번 칸(세 번째)이라서 토마토예요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"테이블 = [['빵', '패티', '빵'],\n          ['빵', '치즈', '빵']]\nprint(테이블[0][1])",
+     opts:['빵','패티','치즈','오류가 나요'],a:1,why:'0번 테이블의 1번 칸이라서 패티예요.'},
+    {type:'mc',q:"'치즈'가 출력되려면 □에 들어갈 것은?",code:"테이블 = [['빵', '패티'],\n          ['빵', '치즈'],\n          ['빵', '양상추']]\nprint(테이블[□])",
+     opts:['[1][1]','[1][0]','[2][1]','[0][1]'],a:0,why:'치즈는 1번 테이블(두 번째 줄)의 1번 칸이에요. 게임에서 서빙하던 그대로!'},
+    {type:'grid',q:'토마토가 들어 있는 칸을 누르세요.',
+     grid:[['🍞 빵','🥩 패티','🧀 치즈'],['🍞 빵','🍅 토마토','🥬 양상추']],a:[1,1],
+     why:'1번 테이블의 1번 칸, 즉 테이블[1][1]이에요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"테이블 = [['빵', '패티'],\n          ['치즈', '양상추'],\n          ['토마토', '피클']]\nprint(테이블[2][1])",
+     opts:['토마토','피클','양상추','치즈'],a:1,why:'2번 테이블(세 번째 줄)의 1번 칸이라서 피클이에요.'},
+    {type:'input',q:"'토마토'가 출력되도록 빈칸 전체를 직접 입력하세요.",code:"테이블 = [['빵', '패티', '치즈'],\n          ['양상추', '토마토', '피클']]\nprint(____)",
+     a:'테이블[1][1]',ph:'예: 테이블[0][0]',why:'토마토는 1번 줄의 1번 칸 — 행 먼저, 열 나중!'},
+    {type:'mc',q:'테이블[0][1] 과 테이블[1][0] 은?',opts:['서로 다른 자리예요','같은 자리예요','둘 다 오류예요','항상 첫 줄이에요'],a:0,
+     why:'[행][열] 순서가 바뀌면 완전히 다른 손님에게 가요!'},
+    {type:'grid',q:'치즈가 들어 있는 칸을 누르세요.',grid:[['🍞 빵','🥬 양상추'],['🧀 치즈','🍅 토마토']],a:[1,0],
+     why:'치즈는 1번 줄의 0번 칸, 테이블[1][0]이에요.'}
+  ],
+  requiz:[
+    {type:'grid',q:'테이블[1][0] 에 해당하는 칸을 누르세요.',grid:[['🍞 빵','🥩 패티'],['🧀 치즈','🥬 양상추']],a:[1,0],
+     why:'아래로 1칸 내려가 0번 칸이라서 치즈예요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"테이블 = [['빵', '패티'],\n          ['치즈', '양상추']]\nprint(테이블[0][1])",
+     opts:['빵','패티','치즈','양상추'],a:1,why:'0번 줄의 1번 칸이라서 패티예요.'},
+    {type:'mc',q:"'양상추'가 출력되려면 □에 들어갈 것은?",code:"테이블 = [['빵', '패티'],\n          ['치즈', '양상추']]\nprint(테이블[□])",
+     opts:['[0][1]','[1][0]','[1][1]','[0][0]'],a:2,why:'양상추는 1번 줄의 1번 칸이에요.'},
+    {type:'grid',q:'양상추가 들어 있는 칸을 누르세요.',grid:[['🍞 빵','🥩 패티'],['🧀 치즈','🥬 양상추']],a:[1,1],
+     why:'1번 줄의 1번 칸이에요.'},
+    {type:'mc',q:'무엇이 출력될까요?',code:"테이블 = [['빵', '패티'],\n          ['치즈', '양상추']]\nprint(테이블[1][1])",
+     opts:['빵','패티','치즈','양상추'],a:3,why:'1번 줄의 1번 칸이라서 양상추예요.'},
+    {type:'input',q:"'패티'가 출력되도록 빈칸 전체를 직접 입력하세요.",code:"테이블 = [['빵', '패티'],\n          ['치즈', '양상추']]\nprint(____)",
+     a:'테이블[0][1]',ph:'예: 테이블[0][0]',why:'패티는 0번 줄의 1번 칸이에요.'},
+    {type:'mc',q:'2차원 리스트에서 좌표를 읽는 순서로 맞는 것은?',opts:['행(줄) 먼저, 열(칸) 나중','열 먼저, 행 나중','큰 숫자 먼저','아무 순서나 괜찮아요'],a:0,
+     why:'테이블[행][열] — 아래로 몇 줄 내려간 뒤, 오른쪽으로 몇 칸!'},
+    {type:'grid',q:'테이블[0][0] 에 해당하는 칸을 누르세요.',grid:[['🍞 빵','🥩 패티'],['🧀 치즈','🥬 양상추']],a:[0,0],
+     why:'맨 앞줄의 첫 칸이 [0][0]이에요.'}
+  ]
+}
+];
+
+/* ═══════════ 상태 ═══════════ */
+const $ = id => document.getElementById(id);
+let prog = STAGES.map(()=>({stars:0, passed:false, attempts:0, best:0, wrong:0, perfect:[false,false,false]}));
+let relax = true;            // 천천히 모드: 시간 여유 1.6배
+let practice = false;        // 연습 모드: 시간 무제한
+let failStreak = 0;          // 같은 레벨 연속 실패 횟수 → 2회부터 연습 모드 제안
+let levelWrong = false;      // 이번 레벨에서 한 번이라도 틀림 (퍼펙트 판정)
+let pendingChef = -1;        // 2차시 매개변수 레벨: 선택된 셰프 (개수 입력 대기)
+let servedBurgers = 0;       // 2차시: 메인셰프에게 전달된 버거 누적 개수
+let bonusAsked=false, bonusActive=null, bonusGain=0;   // 1차시 코드 읽기 보너스
+let qSet = null;             // 이번 확인 문제 세트 (풀에서 5문항 랜덤)
+let screen='map';
+let si=0, li=0, curLevel=null, retry=false;
+let hearts=3, doneCount=0, combo=0, maxCombo=0, wrongThisRound=false;
+let belt=[], beltInit=[], recipe=[], pointer=0, built=[];
+let repSel=null;             // 반복 스테이지: 선택된 ×N
+let repGot=0;                // 반복 스테이지: 현재 ×N 층에 하나씩 넣은 개수
+let gridData=[], gridTargets=[], gridStep=0;
+let fnBody=[], fnPhase='def', fnSlot=0, fnServed=[], fnArgs=[];
+let chefRoster=[], chefOrders=[], chefStep=0, animating=false, animToken=0;
+let passList=[], passInit=[], custGrid=[], gridOrders=[], gridPhase='pick', heldFood=null, pendingRow=-1;
+const FOODS=['🍔 햄버거','🍟 감자튀김','🥤 콜라','🍕 피자','🌭 핫도그','🍗 치킨','🥗 샐러드','🍦 아이스크림'];
+const CUSTOMERS=['🧑','👧','👨‍🦰','👩','🧓','👦','👱‍♀️','🧔'];
+const CHEF_TYPES=[
+ {name:'불고기버거', recipe:['🍞 빵','🍖 불고기','🥬 양상추','🍞 빵']},
+ {name:'새우버거', recipe:['🍞 빵','🍤 새우','🥬 양상추','🍞 빵']},
+ {name:'치킨버거', recipe:['🍞 빵','🍗 치킨','🥒 피클','🍞 빵']},
+ {name:'치즈버거', recipe:['🍞 빵','🥩 패티','🧀 치즈','🍞 빵']},
+ {name:'더블치즈버거', recipe:['🍞 빵','🥩 패티','🧀 치즈','🧀 치즈','🍞 빵']}
+];
+let learnIdx=0, learnRetry=false;
+let qi=0, qc=0, qPick=null, qOrder=[], qLocked=false, qShuf=null, qPendingRow=-1;
+
+function loadProgress(){
+    try{ const v=JSON.parse(localStorage.getItem('pd_master')); if(v&&v.prog&&v.prog.length===STAGES.length){ prog=v.prog; prog.forEach(p=>{ if(!p.perfect) p.perfect=[false,false,false]; }); relax=v.relax!==false; practice=v.practice===true; } }catch(e){}
+}
+function saveProgress(){ try{ localStorage.setItem('pd_master', JSON.stringify({prog,relax,practice})); }catch(e){} }
+function resetProgress(){ if(confirm('별과 진행도를 모두 초기화할까요?')){ prog=STAGES.map(()=>({stars:0,passed:false,attempts:0,best:0,wrong:0,perfect:[false,false,false]})); saveProgress(); showMap(); } }
+function toggleRelax(){ relax=!relax; saveProgress(); paintRelax(); }
+function paintRelax(){ $('relax-btn').innerText = relax ? '천천히 모드 끄기' : '천천히 모드 켜기'; paintPractice(); }
+function togglePractice(){ practice=!practice; saveProgress(); paintPractice(); }
+function paintPractice(){ const b=$('practice-btn'); if(b) b.innerText = practice ? '⏱️ 연습 모드 끄기 (시간 무제한)' : '⏱️ 연습 모드 켜기'; }
+
+/* ── 학습 기록 (정답률·시도·오류 패턴 수집, CSV 내보내기) ── */
+function plog(ev,detail){
+    try{ const a=JSON.parse(localStorage.getItem('pd_log')||'[]');
+        a.push({t:new Date().toISOString(), s:si+1, l:li+1, ev, d:detail||''});
+        while(a.length>2000) a.shift();
+        localStorage.setItem('pd_log', JSON.stringify(a));
+    }catch(e){}
+}
+function exportLog(){
+    try{ const a=JSON.parse(localStorage.getItem('pd_log')||'[]');
+        if(!a.length){ alert('아직 학습 기록이 없어요!'); return; }
+        const csv='﻿시각,차시,레벨,이벤트,내용\n'+a.map(r=>[r.t,r.s,r.l,r.ev,String(r.d).replace(/,/g,';').replace(/\n/g,' ')].join(',')).join('\n');
+        const b=new Blob([csv],{type:'text/csv;charset=utf-8'}), u=URL.createObjectURL(b);
+        const el=document.createElement('a'); el.href=u; el.download='PixelDiner_학습기록.csv';
+        document.body.appendChild(el); el.click(); el.remove();
+        setTimeout(()=>URL.revokeObjectURL(u),2000);
+    }catch(e){ alert('내보내기 실패: '+e.message); }
+}
+const totalStars = () => prog.reduce((n,p)=>n+p.stars,0);
+const totalBadges = () => prog.filter(p=>p.passed).length;
+const ST = () => STAGES[si];
+const QS = () => qSet || (retry ? ST().requiz : ST().quiz);
+/* 풀에서 5문항 랜덤 추출 — 입력형(직접 쓰기) 1문항은 반드시 포함 */
+function buildQuizSet(){
+    const pool = retry ? ST().requiz : ST().quiz;
+    let s = shuffled(pool).slice(0,5);
+    if(!s.some(q=>q.type==='input')){
+        const inp = pool.filter(q=>q.type==='input');
+        if(inp.length) s[s.length-1] = pick(inp);
+    }
+    return shuffled(s);
+}
+
+/* ═══════════ 타이머 ═══════════ */
+let tStart=0,tDur=0,tRAF=null,running=false;
+let previewing=false, previewTimer=null, inputLock=false, lockTimer=null;
+const LOCK_MS=900;
+function setLock(on){ inputLock=on; $('belt').classList.toggle('locked',on); $('lock-toast').classList.toggle('show',on); }
+let tPaused=0;
+function startTimer(sec){
+    if(practice){ running=true; tPaused=0; cancelAnimationFrame(tRAF);
+        const g=$('gauge'); g.style.width='100%'; g.className='gauge-inner'; $('gauge-time').innerText='∞ 연습'; return; }
+    tPaused=0; tDur=sec*1000*(relax?1.6:1); tStart=performance.now(); running=true; cancelAnimationFrame(tRAF); tick(); }
+function pauseTimer(){ if(!running) return; if(practice){ running=false; tPaused=1; return; } tPaused=Math.max(200,tDur-(performance.now()-tStart)); stopTimer(); }
+function resumeTimer(){ if(practice){ if(screen==='game'){ running=true; tPaused=0; } return; } if(tPaused>0){ tDur=tPaused; tStart=performance.now(); tPaused=0; running=true; cancelAnimationFrame(tRAF); tick(); } }
+function stopTimer(){ running=false; cancelAnimationFrame(tRAF); }
+function tick(){
+    if(!running) return;
+    const left=Math.max(0,tDur-(performance.now()-tStart)), r=left/tDur, g=$('gauge');
+    g.style.width=(r*100)+'%';
+    g.className='gauge-inner'+(r<=.25?' danger':r<=.5?' warn':'');
+    $('gauge-time').innerText=(left/1000).toFixed(1)+'s';
+    if(left<=0){ stopTimer(); onTimeout(); return; }
+    tRAF=requestAnimationFrame(tick);
+}
+
+/* ═══════════ 코드 하이라이트 ═══════════ */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const PY=/(#[^\n]*)|('[^'\n]*')|\b(def|return|for|while|if|else|elif|in|range|print|len|append|not|and|or)\b|\b(\d+)\b/g;
+function hi(src){
+    return esc(src).replace(PY,(m,c,s,k,n)=>
+        c?`<span class="c">${c}</span>`:s?`<span class="s">${s}</span>`:k?`<span class="k">${k}</span>`:`<span class="n">${n}</span>`);
+}
+
+/* ═══════════ 화면 전환 ═══════════ */
+function only(id){
+    ['map-screen','learn-screen','game-screen','quiz-screen'].forEach(x=>$(x).style.display = x===id?'block':'none');
+    window.scrollTo(0,0);
+}
+function showMap(){
+    stopTimer(); clearInterval(previewTimer); previewing=false;
+    $('preview').classList.remove('show'); $('overlay').classList.remove('show');
+    screen='map'; animating=false; animToken++; only('map-screen');
+    $('map-stars').innerText=totalStars(); $('map-badges').innerText=totalBadges();
+    paintRelax(); renderPath();
+}
+function stageOpen(i){ return true; }  // 차시 자유 선택
+
+function renderPath(){
+    let html='';
+    STAGES.forEach((st,i)=>{
+        const p=prog[i], open=stageOpen(i);
+        const cls = p.passed?'cleared' : open?'open':'locked';
+        let stars=''; for(let k=0;k<3;k++) stars+=`<span style="color:${k<p.stars?'#FFD93B':'rgba(255,255,255,.45)'}">${k<p.stars?'★':'☆'}</span>`;
+        html+=`<div class="sect"><div class="line"></div><div class="tag">${i+1}차시</div><div class="line"></div></div>`;
+        html+=`<div class="node-wrap">
+            <button class="node stage ${cls}" onclick="tapStage(${i})" ${open?'':'disabled'}>
+                <div class="big">${open?st.icon:'🔒'}</div><div>${st.name}</div>
+                <div class="stage-stars">${p.passed?'🎓':stars}</div></button>
+            <div class="node-label">${st.sub}<div class="sub">⌨️ ${i+1}번 키로 시작${p.passed?' · 통과!':''}</div></div>
+        </div><div class="connector"></div>`;
+        const off=[-70,70,-70];
+        st.levels.forEach((lv,k)=>{
+            const done=p.stars>k, cur=open&&p.stars===k;
+            const c=done?'done':cur?'current':'locked';
+            const face=done?'⭐':cur?'▶':'🔒';
+            const bub=cur&&open?'<div class="start-bubble">시작!</div>':'';
+            html+=`<div class="node-wrap" style="transform:translateX(${off[k]}px)">${bub}
+                <button class="node small ${c}" onclick="tapLevel(${i},${k})" ${done||cur?'':'disabled'}><div class="star-face">${face}</div></button>
+                <div class="node-label">Lv.${k+1}<div class="node-stars" style="color:${done?'var(--gold)':'var(--grey-d)'};font-size:15px">${done?'★':'☆'}${done&&p.perfect&&p.perfect[k]?' <span title="무실수 클리어">💯</span>':''}</div></div>
+            </div><div class="connector"></div>`;
+        });
+        const qOpen = open && p.stars>=3;
+        const qc = p.passed?'done':qOpen?'current':'locked';
+        html+=`<div class="node-wrap">
+            <button class="node check ${qc}" onclick="tapQuiz(${i})" ${qOpen?'':'disabled'}>
+                <div class="big">${p.passed?'🎓':qOpen?'📝':'🔒'}</div></button>
+            <div class="node-label">확인 문제<div class="sub">${p.passed?`최고 ${Math.round(p.best*100)}% · ${p.attempts}번 도전`:qOpen?'5문제 중 4문제 이상':'★ 3개를 모으면 열려요'}</div></div>
+        </div>`;
+        if(i<STAGES.length-1) html+='<div class="connector"></div>';
+    });
+    $('path').innerHTML=html;
+}
+function tapStage(i){
+    if(!stageOpen(i)){ snd('bad'); return; }
+    si=i; retry=false; learnRetry=false; learnIdx=0; showLearn();
+}
+function tapLevel(i,k){
+    if(!stageOpen(i) || prog[i].stars<k){ snd('bad'); return; }
+    si=i; startLevel(k);
+}
+function tapQuiz(i){
+    if(!stageOpen(i) || prog[i].stars<3){ snd('bad'); return; }
+    si=i; retry = prog[i].attempts>0 && !prog[i].passed; startQuiz();
+}
+
+/* ═══════════ 학습 카드 ═══════════ */
+function showLearn(){
+    screen='learn'; only('learn-screen');
+    const st=ST(), deck = learnRetry ? st.hint : st.learn, c=deck[learnIdx], last=learnIdx===deck.length-1;
+    $('learn-title').innerText = `${st.icon} ${st.name} · ${learnRetry?'다시 짚어보기':'개념 배우기'}`;
+    $('learn-body').innerHTML=`
+    <div class="learn-card ${learnRetry?'retry':''}">
+        <div class="goalbar">🎯 ${st.goal}</div>
+        <div class="eyebrow">${learnRetry?'RETRY':'LEARN'} ${learnIdx+1} / ${deck.length}</div>
+        <h2>${c.t}</h2>
+        <p>${c.b}</p>
+        <div class="codeblock">${hi(c.c)}</div>
+        <div class="dots">${deck.map((_,i)=>`<i class="${i===learnIdx?'on':i<learnIdx?'past':''}"></i>`).join('')}</div>
+        <div class="btnrow">
+            <button class="btn blue" style="flex:0 0 90px" onclick="${learnIdx>0?'learnMove(-1)':'showMap()'}">${learnIdx>0?'이전 (0)':'나가기 (0)'}</button>
+            <button class="btn ${learnRetry?'purple':''}" onclick="${last?'learnDone()':'learnMove(1)'}">${last?(learnRetry?'다시 도전':'주방 들어가기'):'다음'} ⏎</button>
+        </div>
+    </div>`;
+}
+function learnMove(d){ learnIdx+=d; showLearn(); }
+function learnDone(){
+    if(learnRetry){ retry=true; startQuiz(); }
+    else startLevel(Math.min(prog[si].stars, ST().levels.length-1));
+}
+
+/* ═══════════ 레벨 시작 ═══════════ */
+function startLevel(k, keep){
+    li=k; curLevel=ST().levels[k]; screen='game';
+    hearts=3; doneCount=0; combo=0; maxCombo=0;
+    levelWrong=false; bonusAsked=false; bonusActive=null; bonusGain=0; pendingChef=-1; servedBurgers=0;
+    only('game-screen');
+    $('lvl-tag').innerText=`${'★'.repeat(k+1)} Lv.${k+1}`;
+    if(keep && recipe.length) resetRound(); else newRound();
+    plog('레벨시작', `${ST().name} Lv.${k+1}${keep?' (재도전)':''}${practice?' [연습]':''}`);
+    beginRound();
+}
+function quitToMap(){ showMap(); }
+const goalOf = () => ST().mode==='grid' ? curLevel.goal : ST().mode==='func' ? curLevel.goal : curLevel.goal;
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function shuffled(a){ const b=a.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+
+/* ═══════════ 라운드 생성 ═══════════ */
+function newRound(){
+    const st=ST(), lv=curLevel;
+    pointer=0; built=[]; wrongThisRound=false; repSel=null; repGot=0;
+
+    if(st.mode==='index'){
+        const [a,b]=lv.fill, n=a+Math.floor(Math.random()*(b-a+1));
+        recipe=[{item:BREAD}];
+        for(let i=0;i<n;i++) recipe.push({item:pick(FILLINGS)});
+        recipe.push({item:BREAD});
+        layoutBelt(lv.belt, recipe.map(r=>r.item));
+    }
+    if(st.mode==='loop'){
+        const [rmin,rmax]=lv.rep, rn=rmin+Math.floor(Math.random()*(rmax-rmin+1));
+        const main=pick(FILLINGS);
+        recipe=[{item:BREAD},{item:main,n:rn}];
+        if(lv.cond){
+            let a=pick(FILLINGS.filter(x=>x!==main)), b=pick(FILLINGS.filter(x=>x!==a&&x!==main));
+            const s=Math.random()<0.5?0:1+Math.floor(Math.random()*4);
+            recipe.push({item:a,alt:b,stock:s});
+        }
+        recipe.push({item:BREAD});
+        const must=[BREAD,main]; recipe.forEach(r=>{ if(r.alt){ must.push(r.item,r.alt); } });
+        layoutBelt(lv.belt, must);
+        stockMap={}; belt.forEach(x=>{ if(x) stockMap[x]=1+Math.floor(Math.random()*5); });
+        recipe.forEach(r=>{ if(r.alt){ stockMap[r.item]=r.stock; if(r.stock===0) stockMap[r.alt]=Math.max(1,stockMap[r.alt]||1); } });
+    }
+    if(st.mode==='grid'){
+        custGrid=[]; for(let r=0;r<lv.rows;r++){ const row=[]; for(let c=0;c<lv.cols;c++) row.push(pick(CUSTOMERS)); custGrid.push(row); }
+        const all=[]; for(let r=0;r<lv.rows;r++) for(let c=0;c<lv.cols;c++) all.push([r,c]);
+        const targets=shuffled(all).slice(0,lv.goal);
+        gridOrders=targets.map(([r,c])=>({r:r,c:c,food:pick(FOODS)}));
+        gridStep=0; gridPhase='pick'; heldFood=null; pendingRow=-1;
+        const nn=Math.max(lv.shelf||6, gridOrders.length);
+        passList=new Array(nn).fill(null);
+        const spots=shuffled([...Array(nn).keys()]);
+        gridOrders.forEach((o,i)=>{ passList[spots[i]]=o.food; });
+        for(let i=0;i<nn;i++) if(passList[i]===null) passList[i]=pick(FOODS);
+        passInit=passList.slice();
+        gridTargets=targets; gridData=custGrid;
+        recipe=gridOrders.map(o=>({item:o.food,rc:[o.r,o.c]}));
+    }
+    if(st.mode==='func'){
+        fnPhase='def'; fnSlot=0; fnServed=[]; fnBody=[];
+        const n=lv.body, slot=1+Math.floor(Math.random()*(n-1));
+        const tpl=[]; for(let i=0;i<n;i++) tpl.push(i===0||i===n-1 ? BREAD : pick(FILLINGS));
+        tpl[slot]='◆';
+        recipe=tpl.map(x=>({item:x}));
+        fnArgs=shuffled(FILLINGS).slice(0,lv.goal);
+        layoutBelt(lv.belt, tpl.filter(x=>x!=='◆').concat(fnArgs));
+    }
+    if(st.mode==='chefs'){
+        chefRoster=shuffled(CHEF_TYPES).slice(0,lv.chefs);
+        let pool=[]; while(pool.length<lv.goal) pool=pool.concat(shuffled(chefRoster));
+        chefOrders=pool.slice(0,lv.goal).map(c=>({name:c.name, recipe:c.recipe,
+            n: lv.pr ? lv.pr[0]+Math.floor(Math.random()*(lv.pr[1]-lv.pr[0]+1)) : 1}));
+        chefStep=0; pendingChef=-1; servedBurgers=0;
+    }
+    beltInit=belt.slice();
+}
+let stockMap={};
+function layoutBelt(size, must){
+    const uniq=[...new Set(must)];
+    const n=Math.max(size, uniq.length);
+    belt=new Array(n).fill(null);
+    const spots=shuffled([...Array(n).keys()]);
+    uniq.forEach((it,i)=>{ belt[spots[i]]=it; });
+    for(let i=0;i<n;i++) if(belt[i]===null) belt[i]=pick(POOL);
+}
+function resetRound(){ pointer=0; built=[]; wrongThisRound=false; repSel=null; repGot=0; gridStep=0;
+    belt=beltInit.slice(); if(ST().mode==='func'){ fnPhase='def'; fnSlot=0; fnServed=[]; fnBody=[]; }
+    chefStep=0; pendingChef=-1; servedBurgers=0; gridPhase='pick'; heldFood=null; pendingRow=-1; if(passInit.length) passList=passInit.slice();
+    if(ST().mode==='grid'||ST().mode==='func'||ST().mode==='chefs') doneCount=0; }
+
+/* ═══════════ 라운드 시작 (미리보기) ═══════════ */
+function beginRound(){
+    animToken++; animating=false;
+    clearTimeout(lockTimer); setLock(false); renderGame();
+    const st=ST();
+    previewing=true;
+    $('preview-title').innerText = st.mode==='grid' ? '🔔 서빙 주문표가 왔어요!' : st.mode==='chefs' ? '🧑‍🍳 오늘의 보조셰프들!' : st.mode==='func' ? '🔔 오늘의 레시피!' : '🔔 새 주문이 들어왔어요!';
+    $('preview-sub').innerText = st.mode==='grid' ? '음식을 집고(인덱스) 좌표 테이블로 서빙!' : st.mode==='chefs' ? '각 셰프가 만드는 버거(함수)를 기억하세요' : st.mode==='loop' ? '× 는 반복 · 품절이면 대체 재료!' : st.mode==='func' ? '먼저 레시피를 등록하고 주문을 처리해요' : '이 레시피를 기억하세요 (아래→위)';
+    $('preview-stack').innerHTML = st.mode==='grid'
+        ? gridOrders.map(o=>`<div class="rlayer"><span class="rl-emoji">${em(o.food)}</span><span class="rl-name mono">테이블[${o.r}][${o.c}]</span></div>`).join('')
+        : st.mode==='chefs'
+        ? chefRoster.map(c=>`<div class="rlayer"><span class="rl-emoji">🧑‍🍳</span><span class="rl-name" style="font-size:13px">${c.name}</span><span style="font-size:14px;letter-spacing:1px">${c.recipe.map(em).join('')}</span></div>`).join('')
+        : recipe.map(r=>layerHTML(r,'')).join('');
+    $('preview').classList.add('show');
+    let c=3; const cnt=$('preview-count');
+    const show=v=>{cnt.innerText=v;cnt.classList.remove('pv-pop');void cnt.offsetWidth;cnt.classList.add('pv-pop');};
+    cnt.style.color='var(--green)'; show(c); snd('tick');
+    clearInterval(previewTimer);
+    previewTimer=setInterval(()=>{
+        c--;
+        if(c>0){ show(c); snd('tick'); }
+        else{ clearInterval(previewTimer); cnt.style.color='var(--gold)'; show('시작!'); snd('done'); setTimeout(endPreview,450); }
+    },1000);
+}
+function endPreview(){ $('preview').classList.remove('show'); previewing=false; if(screen==='game'){ startTimer(curLevel.time + bonusGain/1000); bonusGain=0; } }
+
+/* ═══════════ 렌더 ═══════════ */
+function layerHTML(r, cls, badge){
+    const label = r.item==='◆' ? '◆ 매개변수'
+        : r.alt ? `<small style="font-weight:600;font-size:11px;opacity:.85">재고 있으면</small> ${nm(r.item)}<br><small style="font-weight:600;font-size:11px"><span style="color:var(--red)">품절</span>이면 ${em(r.alt)} ${nm(r.alt)}</small>`
+        : r.rc ? `테이블[${r.rc[0]}][${r.rc[1]}]`
+        : nm(r.item) + (r.n>1?` ×${r.n}`:'');
+    const icon = r.item==='◆' ? '◆' : r.rc ? em(r.item) : em(r.item);
+    return `<div class="rlayer ${cls}"><span class="rl-emoji">${icon}</span><span class="rl-name${r.rc?' mono':''}" style="${r.rc?'font-size:12px':''}">${label}</span>${badge||''}</div>`;
+}
+function renderGame(){
+    const st=ST(), lv=curLevel;
+    $('hearts').innerText='❤️'.repeat(Math.max(0,hearts))+'🖤'.repeat(Math.max(0,3-hearts));
+    let dots=''; for(let k=0;k<goalOf();k++) dots+=k<doneCount?'●':'○';
+    $('prog-dots').innerText=dots;
+    updateCombo();
+    $('kitchen').style.display = st.mode==='chefs' ? 'block' : 'none';
+    if(st.mode!=='grid'){ const be=$('belt'); be.style.display='grid'; be.style.background=''; be.style.border=''; be.style.padding=''; }
+    $('recipe-stack').style.flexDirection = st.mode==='grid' ? 'column' : '';
+
+    if(st.mode==='grid') return renderGrid();
+    if(st.mode==='chefs') return renderChefs();
+    if(st.mode==='func') return renderFunc();
+
+    // 공통: index / loop
+    $('recipe-head').innerHTML=`📋 레시피<small>${st.mode==='loop'?'× 는 반복, if 는 재고 확인':'이 순서로 쌓아요 (아래→위)'}</small>`;
+    $('need-label').innerText='🔍 지금 필요한 재료';
+    $('belt-title').innerText='🛒 컨베이어 벨트';
+    $('belt-sub').innerText= st.mode==='loop' ? '배지 = 남은 재고 · 0이면 품절!' : '칸 위 숫자 = 인덱스';
+    $('need-hint').innerText= st.mode==='loop' ? '× 칩을 쓰면 한 번에!' : '칸의 번호키를 누르세요';
+
+    const cur = recipe[pointer];
+    $('need-big').innerHTML = pointer>=recipe.length ? '<span style="color:var(--green)">완성! 🎉</span>'
+        : cur.alt ? `<span style="font-size:17px">${em(cur.item)} ${nm(cur.item)}, <b style="color:var(--blue-d)">재고 있어요?</b><br>
+            <span style="font-size:14px;color:var(--greytext)">있으면 <b style="color:var(--ink)">${nm(cur.item)}</b> · <b style="color:var(--red)">품절</b>이면 ${em(cur.alt)} <b style="color:var(--ink)">${nm(cur.alt)}</b></span></span>`
+        : `${em(cur.item)} ${nm(cur.item)}${cur.n>1?` <span style="color:var(--purple)">×${cur.n}</span>${repGot>0?` <span style="font-size:16px;color:var(--greytext)">(${repGot}/${cur.n} 넣음)</span>`:''}`:''}`;
+    // 방금 append된 항목은 반짝 강조 + .append() 라벨 표시
+    const itemsHtml=built.map((x,ix)=>{
+        const s=hi(`'${nm(x)}'`);
+        return ix>=built.length-justAdded ? `<span class="just">${s}</span>` : s;
+    }).join(', ');
+    $('codeline').innerHTML = `my_burger = [${itemsHtml}]` +
+        (justAdded>0?`<span class="append-chip">← ${justAdded>1?`${justAdded}번 반복 `:''}.append(${hi(`'${nm(built[built.length-1])}'`)})</span>`:'');
+    justAdded=0;
+
+    // 반복 칩
+    $('chips').innerHTML = st.mode==='loop'
+        ? `<span style="font-weight:700;font-size:13px;color:var(--greytext)">🔁 반복</span>` +
+          [2,3,4].map(n=>`<button class="chip ${repSel===n?'on':''}" onclick="tapRep(${n})">× ${n}</button>`).join('') +
+          (repSel?`<span class="mono" style="font-size:12px;color:var(--purple-d)">for i in range(${repSel}):</span>`:'')
+        : '';
+
+    // 재고 배지는 조건(if) 층에 관련된 재료에만 표시 → 인덱스와 헷갈리지 않게
+    const condItems=new Set(); recipe.forEach(r=>{ if(r.alt){ condItems.add(r.item); condItems.add(r.alt); } });
+    $('belt').style.gridTemplateColumns=`repeat(${Math.min(belt.length,8)},1fr)`;
+    $('belt').innerHTML=belt.map((it,i)=>{
+        if(it===null) return `<div class="slot empty" id="slot-${i}"><div class="keycap">${i}</div><div class="emoji">&nbsp;</div><div class="nm">&nbsp;</div></div>`;
+        const showStock = st.mode==='loop' && condItems.has(it);
+        const stock = stockMap[it]||0;
+        const badge = showStock ? `<span class="stockbadge">재고 ${stock}</span>` : '';
+        return `<div class="slot" id="slot-${i}" onclick="grab(${i})">${badge}
+            <div class="keycap">${i}</div><div class="emoji">${em(it)}</div><div class="nm">${nm(it)}</div></div>`;
+    }).join('');
+
+    $('recipe-stack').innerHTML=recipe.map((r,i)=>{
+        const s=i<pointer?'done':i===pointer?'cur':'future';
+        const b=i<pointer?'<span class="ok-chip">✓</span>':i===pointer?'<span class="now-chip">지금!</span>':'';
+        return layerHTML(r,s,b);
+    }).join('');
+}
+function renderGrid(){
+    const o=gridOrders[gridStep];
+    $('recipe-head').innerHTML=`📋 주문 대기열<small>① 인덱스로 집고 → ② 좌표로 서빙!</small>`;
+    $('need-label').innerText = gridPhase==='pick' ? '1️⃣ 픽업대에서 음식 집기' : '2️⃣ 테이블로 서빙!';
+    $('belt-title').innerText='🛎️ 서빙 알바생의 홀';
+    $('belt-sub').innerText='픽업대 숫자 = 인덱스 · 테이블 = [행][열]';
+    $('need-hint').innerText = gridPhase==='pick' ? '음식이 있는 칸의 번호키!'
+        : (pendingRow>=0 ? `행 [${pendingRow}] 선택됨 → 열 번호를 누르세요` : '행 번호 → 열 번호 순서로! (클릭도 가능)');
+    $('need-big').innerHTML = !o ? '<span style="color:var(--green)">서빙 끝! 🎉</span>'
+        : gridPhase==='pick'
+        ? `${em(o.food)} ${nm(o.food)} <span style="font-size:14px;color:var(--greytext)">몇 번 칸에 있죠?</span>`
+        : `${em(o.food)} → <b class="mono" style="color:var(--blue-d)">테이블[${o.r}][${o.c}]</b> <span style="font-size:14px;color:var(--greytext)">손님께 서빙!</span>`;
+    if(o && gridPhase==='pick' && gridStep===0 && heldFood===null) $('codeline').innerHTML=hi('# 주문서를 보고: 음식[번호] 집기 → 테이블[행][열] 서빙');
+    if(o && gridPhase==='serve') $('codeline').innerHTML=hi(`들고 있는 음식 = 음식[${heldFood}]`)+`<span style="color:#8C8B85;margin-left:12px"># ${em(o.food)} ${nm(o.food)}</span>`;
+    $('chips').innerHTML='';
+    const shelf=passList.map((f,i)=> f===null
+        ? `<div class="slot empty" id="slot-${i}" style="padding:6px 2px"><div class="keycap">${i}</div><div class="emoji">&nbsp;</div><div class="nm">&nbsp;</div></div>`
+        : `<div class="slot" id="slot-${i}" onclick="pickFood(${i})" style="padding:6px 2px"><div class="keycap">${i}</div><div class="emoji">${em(f)}</div><div class="nm">${nm(f)}</div></div>`).join('');
+    const cols=custGrid[0].length;
+    let tbl=`<div></div>`+[...Array(cols).keys()].map(c=>`<div class="rowtag hallsign">[${c}]</div>`).join('');
+    custGrid.forEach((row,r)=>{
+        tbl+=`<div class="rowtag hallsign">[${r}]</div>`;
+        row.forEach((cu,c)=>{
+            const sv=gridOrders.find((oo,k)=>k<gridStep&&oo.r===r&&oo.c===c);
+            const hl=pendingRow===r&&gridPhase==='serve';
+            const isCur=!sv && o && o.r===r && o.c===c;
+            tbl+=`<div class="tbl${sv?' servedT':''}${isCur?' ordering':''}" id="cell-${r}-${c}" ${sv?'':`onclick="serveTable(${r},${c})"`} style="${hl?'outline:3px solid var(--blue);':''}">
+                ${isCur?`<div class="order-bub">${em(o.food)} 주세요~</div>`:''}
+                <div class="cust">${sv?'😋':cu}</div>
+                <div class="cloth">${sv?em(sv.food):'🍽️'}</div></div>`;
+        });
+    });
+    $('belt').style.display='block';
+    $('belt').style.background='none';
+    $('belt').style.border='none';
+    $('belt').style.padding='0';
+    $('belt').innerHTML=`
+        <div class="passzone">
+            <div style="font-size:12.5px;font-weight:700;color:#8A612;margin:0 0 7px">🍳 주방 픽업대 — 음식이 리스트로 나와요</div>
+            <div style="display:grid;grid-template-columns:repeat(${passList.length},1fr);gap:8px">${shelf}</div>
+        </div>
+        <div class="hallzone">
+            <div style="font-size:12.5px;font-weight:700;color:#FFF3DC;margin:0 0 7px;text-shadow:0 1px 2px rgba(0,0,0,.35)">🍽️ 홀 — 테이블[행][열] 좌표로 서빙</div>
+            <div style="display:grid;grid-template-columns:34px repeat(${cols},1fr);gap:9px">${tbl}</div>
+        </div>`;
+    $('recipe-stack').innerHTML=gridOrders.map((oo,i)=>{
+        const c2=i<gridStep?'done':i===gridStep?'cur':'future';
+        const b=i<gridStep?'<span class="ok-chip">✓</span>':i===gridStep?'<span class="now-chip">지금!</span>':'';
+        return `<div class="rlayer ${c2}"><span class="rl-emoji">${em(oo.food)}</span><span class="rl-name mono" style="font-size:12px">테이블[${oo.r}][${oo.c}]</span>${b}</div>`;
+    }).join('');
+}
+function pickFood(i){
+    if(!canAct()||ST().mode!=='grid'||gridPhase!=='pick') return;
+    const o=gridOrders[gridStep], f=passList[i];
+    if(f===null||f===undefined||!o) return;
+    if(f===o.food){
+        snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo; flash('slot-'+i,true);
+        heldFood=i; passList[i]=null; gridPhase='serve'; pendingRow=-1;
+        $('echo').innerHTML=hi(`음식[${i}]`)+` ${em(o.food)} 집었다!`;
+        renderGame();
+    } else {
+        flash('slot-'+i,false); penalty();
+        plog('오답', `픽업: 음식[${i}](${nm(f)}) — 주문은 ${nm(o.food)}`);
+        $('echo').innerHTML=hi(`음식[${i}]`)+` 은 <b>${nm(f)}</b> — 주문은 <b style="color:var(--blue-d)">${nm(o.food)}</b>이에요!`;
+    }
+}
+function serveTable(r,c){
+    if(!canAct()||ST().mode!=='grid'||gridPhase!=='serve') return;
+    const o=gridOrders[gridStep]; if(!o) return;
+    if(r===o.r&&c===o.c){
+        snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo; flash(`cell-${r}-${c}`,true);
+        animating=true; pauseTimer(); const tk=animToken;
+        serveWalk($('slot-'+heldFood)||$('need-big'), $(`cell-${r}-${c}`), em(o.food), tk, ()=>{
+            if(tk!==animToken||screen!=='game'){ animating=false; return; }
+            snd('done');
+            $('codeline').innerHTML=hi(`테이블[${r}][${c}]`)+`<span style="color:#8C8B85;margin-left:12px"># ${em(o.food)} 서빙 완료! 😋</span>`;
+            $('echo').innerHTML='😋 감사합니다!';
+            gridStep++; doneCount=gridStep; gridPhase='pick'; heldFood=null; pendingRow=-1; animating=false;
+            if(gridStep>=gridOrders.length){ onRoundComplete(); return; }
+            resumeTimer(); renderGame();
+        });
+    } else {
+        flash(`cell-${r}-${c}`,false); penalty(); pendingRow=-1;
+        const swapped = r===o.c && c===o.r && o.r!==o.c;
+        plog('오답', `좌표: [${r}][${c}] 서빙 — 주문은 [${o.r}][${o.c}]${swapped?' (행열 바꿈)':''}`);
+        $('echo').innerHTML = swapped
+            ? hi(`테이블[${r}][${c}]`)+' — <b style="color:var(--red)">행과 열이 바뀌었어요!</b> [행][열] — 아래로 먼저, 오른쪽은 나중!'
+            : hi(`테이블[${r}][${c}]`)+' 손님이 아니에요! 좌표를 다시 보세요';
+    }
+}
+function serveWalk(fromEl,toEl,food,tk,done){
+    if(!fromEl||!toEl){ done(); return; }
+    const a=fromEl.getBoundingClientRect(), b=toEl.getBoundingClientRect();
+    const sp=document.createElement('div'); sp.className='walk-emoji';
+    sp.innerHTML=`<span style="display:block;font-size:17px;margin-bottom:-5px">${food}</span>🏃`;
+    const x0=a.left+a.width/2-16, y0=a.top+a.height/2-20;
+    sp.style.left=x0+'px'; sp.style.top=y0+'px';
+    document.body.appendChild(sp);
+    requestAnimationFrame(()=>{
+        sp.style.transform=`translate(${b.left+b.width/2-16-x0}px, ${b.top+b.height/2-20-y0}px)`;
+    });
+    setTimeout(()=>{ sp.remove(); done(); }, 860);
+}
+function flyEl(fromId,toId,emoji){
+    const f=$(fromId), t=$(toId); if(!f||!t) return;
+    const a=f.getBoundingClientRect(), b=t.getBoundingClientRect();
+    const sp=document.createElement('span'); sp.className='fly-emoji'; sp.textContent=emoji;
+    const x0=a.left+a.width/2-13, y0=a.top+a.height/2-13;
+    sp.style.left=x0+'px'; sp.style.top=y0+'px';
+    document.body.appendChild(sp);
+    requestAnimationFrame(()=>{
+        sp.style.transform=`translate(${b.left+b.width/2-13-x0}px, ${b.top+b.height/2-13-y0}px) scale(.6)`;
+        sp.style.opacity='0.15';
+    });
+    setTimeout(()=>sp.remove(),620);
+}
+function renderChefs(){
+    const lv=curLevel, named=lv.named, hasPr=!!lv.pr;
+    const order=chefOrders[chefStep];
+    $('recipe-head').innerHTML=`📋 주문서<small>${hasPr?'셰프 호출 + 괄호 안에 개수(매개변수)!':named?'버거 이름에 맞는 셰프를 호출!':'재료를 보고 맞는 셰프를 호출!'}</small>`;
+    $('need-label').innerText='🔔 지금 들어온 주문';
+    $('belt-title').innerText='🧑‍🍳 보조셰프 (함수)';
+    $('belt-sub').innerText= hasPr ? '① 셰프 번호 → ② 개수 입력 (0 = 취소)' : '번호키로 호출!';
+    $('need-hint').innerText = hasPr
+        ? (pendingChef>=0 ? `${chefRoster[pendingChef].name}( ? ) ← 개수 숫자키!` : '셰프 번호 → 개수 순서로')
+        : '맞는 셰프를 부르세요';
+    $('need-big').innerHTML = !order ? '<span style="color:var(--green)">주문 끝! 🎉</span>'
+        : named ? `🍔 <b>${order.name}</b> <span style="color:var(--purple);font-weight:700">${order.n}개요!</span>`
+        : `${order.recipe.map(em).join(' ')} <span style="color:var(--purple);font-weight:800">×${order.n}</span> <span style="font-size:14px;color:var(--greytext)">← 이 버거 ${order.n}개!</span>`;
+    if(chefStep===0 && pendingChef<0) $('codeline').innerHTML=hi(hasPr?'# 셰프(함수)를 부르고, 괄호 안에 개수(매개변수)를 전달!':'# 주문에 맞는 보조셰프(함수)를 호출하세요');
+    if(pendingChef>=0) $('codeline').innerHTML=hi(`${chefRoster[pendingChef].name}(`)+`<b style="color:var(--gold-d)">?</b>`+hi(`)`)+`<span style="color:#8C8B85;margin-left:12px"># ? 자리에 개수를 입력하세요</span>`;
+    // 주방 무대
+    $('kitchen').innerHTML =
+        `<span class="kdeco" style="top:8px;left:10px">🪴</span><span class="kdeco" style="top:8px;right:10px">🪴</span>`+
+        `<span class="kdeco" style="top:10px;left:50%;transform:translateX(-50%)">🍳🔥🍳</span>`+
+        `<div class="counterrow"></div><div class="backrow" id="backrow"></div><div class="passtile"></div>`+
+        chefRoster.map((c,i)=>`
+        <div class="station${pendingChef===i?' sel':''}" id="chefspr-${i}" onclick="callChef(${i})">
+            <div class="kbubble" id="chefbub-${i}"></div>
+            <div class="keycap" style="margin:0 auto 3px;width:26px;height:26px;font-size:13px">${i}</div>
+            <div class="chefE">🧑‍🍳</div>
+            <div class="chefnm">${c.name}</div>
+        </div>`).join('')+
+        `<div class="mainchef"><div class="kbubble" id="mainbub"></div>
+            <div style="font-size:42px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25))">👨‍🍳</div>
+            <div class="chefnm">메인셰프</div></div><div class="passfood" id="passfood">${'🍔'.repeat(Math.min(servedBurgers,12))}</div>`;
+    // 화면 폭 적응 배치: 넓으면 한 줄, 좁으면 앞/뒷줄 지그재그 (겹침 방지)
+    {
+        const kw=$('kitchen').clientWidth||600, n=chefRoster.length;
+        const mainZone=128;
+        let stW=84, span=kw-mainZone-stW-14, step=n>1?span/(n-1):0;
+        let tight=step<stW+6;
+        if(tight){ stW=58; span=kw-mainZone-stW-10; step=n>1?span/(n-1):0; }
+        const stagger = tight && step<stW+6;
+        $('backrow').style.display = stagger ? 'block' : 'none';
+        chefRoster.forEach((c,i)=>{
+            const sp=$('chefspr-'+i);
+            sp.classList.toggle('compact', tight);
+            const back = stagger && (i%2===1);
+            sp.classList.toggle('back', back);
+            sp.style.left=(n>1 ? 10+i*step : 14)+'px';
+            sp.style.bottom= back ? '90px' : '12px';
+        });
+    }
+    $('chips').innerHTML = hasPr
+        ? (pendingChef>=0
+            ? `<span class="mono" style="font-size:13px;font-weight:700;color:var(--gold-d)">${chefRoster[pendingChef].name}( ? ) ← 개수를 숫자키로! · 0 = 취소</span>`
+            : `<span style="font-weight:700;font-size:12px;color:var(--greytext)">💡 호출법: 셰프 번호 → 개수 — 괄호 안 숫자가 매개변수!</span>`)
+        : '';
+    $('belt').style.gridTemplateColumns=`repeat(${chefRoster.length},1fr)`;
+    $('belt').innerHTML=chefRoster.map((c,i)=>`
+        <div class="slot" id="slot-${i}" onclick="callChef(${i})" style="padding:10px 4px;${pendingChef===i?'outline:3px solid var(--gold);':''}">
+            <div class="keycap">${i}</div>
+            <div style="font-size:26px">🧑‍🍳</div>
+            <div style="font-weight:700;font-size:13px;color:var(--ink)">${c.name}</div>
+            <div class="mono" style="font-size:9.5px;color:var(--greytext);margin-top:2px">def ${c.name}(${hasPr?'개수':''}):</div>
+            <div style="font-size:14px;letter-spacing:1px">${c.recipe.map(em).join('')}</div>
+        </div>`).join('');
+    $('recipe-stack').innerHTML = !order ? '' : order.recipe.map(it=>layerHTML({item:it},'done','')).join('');
+}
+function callChef(i){ callChefN(i, chefOrders[chefStep] ? chefOrders[chefStep].n : 1); }
+function callChefN(i, cnt){
+    if(!canAct()||ST().mode!=='chefs') return;
+    const chef=chefRoster[i], order=chefOrders[chefStep], hasPr=!!curLevel.pr;
+    if(!chef||!order) return;
+    if(chef.name===order.name && (!hasPr || cnt===order.n)){
+        const ncnt=order.n;
+        snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo; flash('slot-'+i,true);
+        const callCode = hasPr ? `${chef.name}(${ncnt})` : `${chef.name}()`;
+        $('codeline').innerHTML=hi(callCode)+`<span style="color:#8C8B85;margin-left:14px"># 조리 중...</span>`;
+        $('echo').innerHTML=hi(callCode);
+        // ── 애니메이션: 조리 → 배달 → 전달 → 복귀 ──
+        animating=true; pauseTimer();
+        const spr=$('chefspr-'+i), bub=$('chefbub-'+i), rec=chef.recipe;
+        spr.classList.add('cooking'); bub.style.display='block'; bub.textContent='';
+        let k=0;
+        const tk0=animToken;
+        const iv=setInterval(()=>{
+            if(tk0!==animToken||screen!=='game'){ clearInterval(iv); return; }
+            if(k<rec.length){ bub.textContent+=em(rec[k]); snd('tick'); k++; }
+            else { clearInterval(iv); bub.textContent='🍔'.repeat(ncnt); snd('ok'); }
+        },150);
+        const cookMs=150*(rec.length+1)+300;
+        const tk=animToken;
+        setTimeout(()=>{ if(tk!==animToken||screen!=='game')return;
+            spr.classList.remove('cooking'); spr.style.zIndex='9'; spr.style.bottom='12px';
+            const nmEl=spr.querySelector('.chefnm'); if(nmEl) nmEl.style.opacity='0';
+            const mcEl=$('kitchen').querySelector('.mainchef'), spW=spr.offsetWidth||84;
+            const targetLeft=mcEl.offsetLeft-spW+30;   // 메인셰프 코앞, 살짝 겹칠 만큼
+            spr.style.transform=`translateX(${targetLeft-spr.offsetLeft}px)`;
+        },cookMs);
+        setTimeout(()=>{ if(tk!==animToken||screen!=='game')return;
+            flyEl('chefbub-'+i,'passfood','🍔');
+            bub.style.display='none'; snd('done');
+            const pf=$('passfood'); if(pf) pf.textContent='🍔'.repeat(Math.min(servedBurgers+ncnt,12));
+            const mb=$('mainbub'); mb.style.display='block'; mb.textContent=`🍔${ncnt>1?'×'+ncnt:''} 접수! 감사~`;
+        },cookMs+650);
+        setTimeout(()=>{ if(tk!==animToken||screen!=='game')return;
+            spr.style.transform=''; spr.style.zIndex='';
+            const nmEl2=spr.querySelector('.chefnm'); if(nmEl2) nmEl2.style.opacity='';
+            const mb=$('mainbub'); if(mb) mb.style.display='none';
+            $('codeline').innerHTML = hasPr
+                ? hi(`완성 = ${chef.name}(${ncnt})`)+`<span style="color:#8C8B85;margin-left:14px"># return '🍔' * ${ncnt} → ${'🍔'.repeat(ncnt)}</span>`
+                : hi(`${chef.name}()`)+`<span style="color:#8C8B85;margin-left:14px"># [${rec.map(x=>`'${nm(x)}'`).join(', ')}] 완성!</span>`;
+            servedBurgers+=ncnt;
+            chefStep++; doneCount=chefStep; animating=false;
+            if(chefStep>=chefOrders.length){ onRoundComplete(); return; }
+            resumeTimer(); renderGame();
+        },cookMs+1350);
+    } else if(chef.name!==order.name){
+        flash('slot-'+i,false); penalty();
+        plog('오답', `함수호출: ${chef.name} 호출 — 주문은 ${order.name}`);
+        $('echo').innerHTML=`<span style="color:var(--red)">${chef.name} 셰프는 ${chef.recipe.map(em).join('')} 담당 — 주문은 <b>${order.name}</b>이에요!</span>`;
+    } else {
+        flash('slot-'+i,false); penalty();
+        plog('오답', `매개변수: ${chef.name}(${cnt}) — 주문은 ${order.n}개`);
+        $('echo').innerHTML=`<span style="color:var(--red)">괄호 안 숫자는 <b>개수(매개변수)</b>! 주문은 <b>${order.n}개</b>예요</span>`;
+        renderGame();
+    }
+}
+function renderFunc(){
+    const def = fnPhase==='def';
+    $('recipe-head').innerHTML=`📋 레시피 등록<small>${def?'◆ 칸은 ◆ 칩을 누르세요':'등록 완료! 이제 주문 처리'}</small>`;
+    $('need-label').innerText = def ? '🔧 1단계 · 레시피 만들기' : '🔔 2단계 · 주문 처리하기';
+    $('belt-title').innerText='🛒 재료 벨트';
+    $('belt-sub').innerText = def ? '레시피에 넣을 재료를 누르세요' : '◆ 자리에 넣을 재료를 누르세요';
+    $('need-hint').innerText = def ? '순서대로 채워요' : 'make_burger( ? )';
+    if(def){
+        const cur=recipe[fnSlot];
+        $('need-big').innerHTML = cur.item==='◆'
+            ? `<span style="color:var(--gold-d)">◆ 매개변수 칩을 누르세요</span>`
+            : `${em(cur.item)} ${nm(cur.item)}`;
+    } else {
+        const a=fnArgs[fnServed.length];
+        $('need-big').innerHTML = fnServed.length>=fnArgs.length ? '<span style="color:var(--green)">완성! 🎉</span>'
+            : `<span class="mono" style="font-size:20px">make_burger(</span> ${em(a)} ${nm(a)} <span class="mono" style="font-size:20px">)</span>`;
+    }
+    const bodyTxt = recipe.map(r=> r.item==='◆' ? '재료' : `'${nm(r.item)}'`).join(', ');
+    $('codeline').innerHTML = hi(def
+        ? `def make_burger(재료):\n    return [${fnBody.map(x=>x==='◆'?'재료':`'${nm(x)}'`).join(', ')}]`
+        : `def make_burger(재료): return [${bodyTxt}]   # 서빙 ${fnServed.length}개`);
+    $('chips').innerHTML = def
+        ? `<span style="font-weight:700;font-size:13px;color:var(--greytext)">특별 칩</span><button class="chip param" onclick="tapParam()">◆ 매개변수</button>`
+        : `<span style="font-weight:700;font-size:13px;color:var(--greytext)">남은 주문</span>` +
+          fnArgs.map((a,i)=>`<span class="chip" style="${i<fnServed.length?'opacity:.35':''}">${em(a)}</span>`).join('');
+    $('belt').style.gridTemplateColumns=`repeat(${Math.min(belt.length,8)},1fr)`;
+    $('belt').innerHTML=belt.map((it,i)=>`<div class="slot" id="slot-${i}" onclick="grab(${i})">
+        <div class="keycap">${i}</div><div class="emoji">${em(it)}</div><div class="nm">${nm(it)}</div></div>`).join('');
+    $('recipe-stack').innerHTML=recipe.map((r,i)=>{
+        const s = def ? (i<fnSlot?'done':i===fnSlot?'cur':'future') : 'done';
+        const b = def ? (i<fnSlot?'<span class="ok-chip">✓</span>':i===fnSlot?'<span class="now-chip">지금!</span>':'') : '';
+        return layerHTML(r,s,b);
+    }).join('');
+}
+function updateCombo(){
+    const b=$('combo-badge');
+    if(combo>=2){ b.style.display='inline-block'; b.textContent='🔥 콤보 x'+combo;
+        b.classList.remove('pv-pop');void b.offsetWidth;b.classList.add('pv-pop'); }
+    else b.style.display='none';
+}
+
+/* ═══════════ 상호작용 ═══════════ */
+let justAdded=0;
+/* 재료가 벨트 칸 → 코드줄(my_burger)로 날아가는 연출 */
+function flyToCode(fromId, emoji){
+    const f=$(fromId), t=$('codeline');
+    if(!f||!t||!t.offsetParent) return;
+    const a=f.getBoundingClientRect(), b=t.getBoundingClientRect();
+    const s=document.createElement('span'); s.className='fly-emoji'; s.textContent=emoji;
+    const x0=a.left+a.width/2-13, y0=a.top+a.height/2-13;
+    s.style.left=x0+'px'; s.style.top=y0+'px';
+    document.body.appendChild(s);
+    requestAnimationFrame(()=>{
+        s.style.transform=`translate(${b.left+40-x0}px, ${b.top+b.height/2-13-y0}px) scale(.45)`;
+        s.style.opacity='0.15';
+    });
+    setTimeout(()=>s.remove(),620);
+}
+function canAct(){ return screen==='game' && !previewing && !inputLock && !animating && running; }
+function flash(id, ok){
+    const el=$(id); if(!el) return;
+    el.classList.remove(ok?'wrong':'correct'); void el.offsetWidth; el.classList.add(ok?'correct':'wrong');
+}
+function penalty(){
+    snd('bad'); combo=0; wrongThisRound=true; levelWrong=true; updateCombo();
+    setLock(true); clearTimeout(lockTimer); lockTimer=setTimeout(()=>setLock(false),LOCK_MS);
+}
+function tapRep(n){ if(!canAct()) return; repSel = repSel===n ? null : n; renderGame(); }
+function tapParam(){
+    if(!canAct() || ST().mode!=='func' || fnPhase!=='def') return;
+    if(recipe[fnSlot].item==='◆'){ snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo;
+        fnBody.push('◆'); fnSlot++; afterFuncDef(); }
+    else penalty();
+}
+function afterFuncDef(){
+    if(fnSlot>=recipe.length){ fnPhase='call'; $('echo').innerHTML='<span style="color:var(--green-d)">레시피 등록 완료! 이제 주문을 처리하세요</span>'; }
+    renderGame();
+}
+function grab(i){
+    if(!canAct()) return;
+    const st=ST(), item=belt[i];
+    if(item===null||item===undefined) return;
+
+    if(st.mode==='func'){
+        if(fnPhase==='def'){
+            const want=recipe[fnSlot].item;
+            if(want==='◆'){ flash('slot-'+i,false); penalty(); return; }
+            if(item===want){ snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo; flash('slot-'+i,true);
+                fnBody.push(item); fnSlot++; $('echo').innerHTML=hi(`재료 ${fnSlot}칸 등록`); afterFuncDef(); }
+            else { flash('slot-'+i,false); penalty(); }
+            return;
+        }
+        const arg=fnArgs[fnServed.length];
+        if(item===arg){
+            snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo; flash('slot-'+i,true);
+            flyToCode('slot-'+i, em(arg));
+            fnServed.push(recipe.map(r=>r.item==='◆'?arg:r.item));
+            doneCount=fnServed.length;
+            $('echo').innerHTML=hi(`make_burger('${nm(arg)}')`);
+            if(fnServed.length>=fnArgs.length){ onRoundComplete(); return; }
+            renderGame();
+        } else { flash('slot-'+i,false); penalty(); }
+        return;
+    }
+
+    if(pointer>=recipe.length) return;
+    const cur=recipe[pointer];
+
+    if(st.mode==='loop'){
+        const need = cur.alt ? ((stockMap[cur.item]||0)>0 ? cur.item : cur.alt) : cur.item;
+        const times = cur.n||1;
+        if(item!==need){ flash('slot-'+i,false); penalty(); return; }
+        // 잘못된 배수 칩을 골라둔 경우만 오답 (칩 없이 하나씩 넣는 건 OK!)
+        if(times>1 && repSel && repSel!==times){
+            flash('slot-'+i,false); penalty();
+            $('echo').innerHTML=`<span style="color:var(--red)">반복 횟수가 달라요! 레시피는 ×${times}</span>`;
+            return;
+        }
+        snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo; flash('slot-'+i,true);
+        const add = (times>1 && repSel===times) ? (times-repGot) : 1; // 칩=남은 만큼 한 번에, 없으면 1장씩
+        justAdded=add; flyToCode('slot-'+i, em(need));
+        for(let k=0;k<add;k++) built.push(need);
+        repGot+=add;
+        if(times>1){
+            $('echo').innerHTML = (add>1)
+                ? hi(`for i in range(${times}): append('${nm(need)}')`)
+                : hi(`append('${nm(need)}')`)+`<span style="color:var(--greytext);font-weight:700"> ${repGot}/${times}${repGot<times?` · ×${times} 칩이면 한 번에!`:''}</span>`;
+        } else {
+            $('echo').innerHTML = hi(cur.alt ? `${nm(cur.item)}재고 = ${stockMap[cur.item]||0} → append('${nm(need)}')` : `append('${nm(need)}')`);
+        }
+        repSel=null;
+        if(repGot>=times){ repGot=0; pointer++; }
+        if(pointer>=recipe.length){ onRoundComplete(); return; }
+        renderGame(); return;
+    }
+
+    // index 모드
+    if(item===cur.item){
+        snd('ok'); combo++; if(combo>maxCombo)maxCombo=combo; flash('slot-'+i,true);
+        justAdded=1; flyToCode('slot-'+i, em(item));
+        built.push(item); belt[i]=null; pointer++;
+        $('echo').innerHTML=hi(`재료[${i}] → '${nm(item)}'`);
+        if(pointer>=recipe.length){ onRoundComplete(); return; }
+        ensureNeeded(); renderGame();
+    } else {
+        flash('slot-'+i,false); penalty();
+        plog('오답', `인덱싱: 재료[${i}](${nm(item)}) 선택 — 필요한 건 ${nm(cur.item)}`);
+        $('echo').innerHTML=hi(`재료[${i}]`)+` 는 <b>'${nm(item)}'</b> — 지금 필요한 건 <b style="color:var(--blue-d)">'${nm(cur.item)}'</b>! 0부터 다시 세어 보세요`;
+    }
+}
+function ensureNeeded(){
+    if(pointer>=recipe.length) return;
+    const need=recipe[pointer].item;
+    if(!belt.includes(need)){
+        const e=belt.indexOf(null);
+        belt[e>=0?e:Math.floor(Math.random()*belt.length)]=need;
+    }
+}
+
+/* ═══════════ 라운드/레벨 결과 ═══════════ */
+function onRoundComplete(){
+    const st=ST();
+    if(st.mode==='grid'||st.mode==='func'||st.mode==='chefs'){ onLevelClear(); return; }
+    stopTimer(); snd('done'); doneCount++;
+    let healed=false;
+    if(!wrongThisRound && hearts<3){ hearts++; healed=true; }
+    renderGame();
+    $('echo').innerHTML = healed ? '<span style="color:var(--red)">퍼펙트! ❤️ 하트 회복!</span>' : '🍔 버거 완성!';
+    plog('버거완성', `${doneCount}/${goalOf()}${wrongThisRound?'':' (무실수)'}`);
+    if(doneCount>=goalOf()){ setTimeout(onLevelClear,500); return; }
+    // 코드 읽기 찬스: 레벨당 1회, 방금 만든 my_burger 코드를 읽어야 풀 수 있는 보너스
+    if(ST().mode==='index' && !bonusAsked && built.length>=2){
+        bonusAsked=true;
+        setTimeout(()=>{ if(screen==='game') showBonus(); },650);
+        return;
+    }
+    setTimeout(()=>{ if(screen!=='game')return; newRound(); beginRound(); },600);
+}
+/* ── 코드 읽기 찬스 (1차시) ── */
+function showBonus(){
+    const names=built.map(nm);
+    const k=Math.floor(Math.random()*names.length);
+    const answer=names[k];
+    let opts=shuffled([...new Set(names)]).slice(0,3);
+    if(!opts.includes(answer)){ opts[0]=answer; opts=shuffled(opts); }
+    bonusActive={k,answer,opts};
+    ovNext='bonus-skip';
+    const code=`my_burger = [${names.map(x=>`'${x}'`).join(', ')}]\nprint(my_burger[${k}])`;
+    showOverlay('🧐','코드 읽기 찬스!','',
+        `<div class="codeblock" style="text-align:left;margin:4px 0 2px">${hi(code)}</div>`+
+        `<div class="bonus-opts">${opts.map((o,oi)=>`<button class="opt" onclick="bonusPick(${oi})"><span class="lt">${oi+1}</span>${esc(o)}</button>`).join('')}</div>`,
+        `방금 만든 버거의 코드예요! 무엇이 출력될까요? (숫자키 1~${opts.length}) · 맞히면 다음 주문 ⏱ +3초`,'건너뛰기');
+}
+function bonusPick(oi){
+    if(!bonusActive) return;
+    const b=bonusActive; bonusActive=null;
+    const ok=b.opts[oi]===b.answer;
+    plog('코드읽기보너스', ok?'정답':`오답 (my_burger[${b.k}])`);
+    if(ok){ snd('ok'); bonusGain=3000; } else snd('bad');
+    ovNext='bonus-continue';
+    showOverlay(ok?'✅':'🤔', ok?'정확해요!':'아쉬워요!','','',
+        ok ? `my_burger[${b.k}] 은 '${b.answer}' — 다음 주문에 ⏱ +3초!`
+           : `0부터 세면 ${b.k}번 칸은 '${b.answer}' 예요. 아래 코드줄도 틈틈이 봐 두세요!`,
+        '계속');
+}
+function practiceRetry(){
+    practice=true; saveProgress(); paintPractice();
+    plog('연습모드', '2연속 실패 → 연습 모드 전환');
+    $('overlay').classList.remove('show');
+    startLevel(li,true);
+}
+function onTimeout(){
+    snd('bad'); hearts--; levelWrong=true; renderGame();
+    plog('시간초과', `Lv.${li+1} 하트 ${hearts}개 남음`);
+    if(hearts<=0){ setTimeout(onLevelFail,400); return; }
+    setTimeout(()=>{ if(screen!=='game')return; resetRound(); beginRound(); },700);
+}
+let ovNext='map';
+function onLevelClear(){
+    stopTimer(); snd('star'); confetti();
+    const p=prog[si];
+    if(!p.perfect) p.perfect=[false,false,false];
+    const perf = !levelWrong && !practice;
+    if(perf) p.perfect[li]=true;
+    if(p.stars<li+1) p.stars=li+1;
+    saveProgress(); failStreak=0;
+    plog('레벨클리어', `Lv.${li+1}${perf?' 💯퍼펙트':''}${practice?' [연습]':''}`);
+    const isLast = li===ST().levels.length-1;
+    ovNext = isLast ? 'quiz' : 'next';
+    showOverlay('🌟',`Lv.${li+1} 클리어!`, '★'.repeat(li+1)+'☆'.repeat(3-(li+1)),
+        perf ? '<div class="perf-badge">💯 퍼펙트! 무실수 클리어</div>' : '',
+        isLast ? '★ 3개 완성! 이제 확인 문제로 개념을 점검해요 🎓' : `잘했어요! 다음 단계로 가볼까요?`,
+        isLast ? '확인 문제 풀기' : '다음 단계');
+}
+function onLevelFail(){
+    stopTimer(); snd('bad'); ovNext='retry'; failStreak++;
+    plog('레벨실패', `Lv.${li+1} ${failStreak}연속`);
+    const suggest = failStreak>=2 && !practice;
+    showOverlay('💔','시간 초과!','☆☆☆',
+        suggest ? '<button id="ov-practice" class="btn purple" style="width:100%;margin:6px 0 2px" onclick="practiceRetry()">⏱️ 연습 모드로 다시 (시간 무제한 · 0번 키)</button>' : '',
+        suggest ? '많이 아까웠어요! 시간 없이 차근차근 연습한 뒤 다시 도전해도 좋아요.'
+                : '하트를 모두 잃었어요. 같은 주문으로 다시 도전해요!',
+        '다시 도전');
+}
+function showOverlay(icon,title,stars,extra,msg,btn,cls){
+    $('ov-icon').innerText=icon; $('ov-title').innerText=title;
+    $('ov-stars').innerHTML=[...stars].map(s=>`<span style="color:${s==='★'?'var(--gold)':'var(--grey-d)'}">${s}</span>`).join('');
+    $('ov-extra').innerHTML=extra||'';
+    $('ov-msg').innerText=msg;
+    const b=$('ov-btn'); b.innerText=btn+' ⏎'; b.className='btn'+(cls||(ovNext==='retry'?' red':''));
+    $('overlay').classList.add('show');
+}
+function overlayAction(){
+    $('overlay').classList.remove('show');
+    if(ovNext==='bonus-skip'||ovNext==='bonus-continue'){
+        bonusActive=null;
+        if(screen==='game'){ newRound(); beginRound(); } else showMap();
+        return;
+    }
+    if(ovNext==='next') startLevel(li+1);
+    else if(ovNext==='retry') startLevel(li,true);
+    else if(ovNext==='quiz'){ retry=false; startQuiz(); }
+    else if(ovNext==='corrective'){ learnRetry=true; learnIdx=0; showLearn(); }
+    else if(ovNext==='nextstage'){ si=Math.min(si+1,STAGES.length-1); retry=false; learnRetry=false; learnIdx=0; showLearn(); }
+    else showMap();
+}
+
+/* ═══════════ 확인 문제 (형성평가) ═══════════ */
+function startQuiz(){
+    stopTimer(); screen='quiz'; only('quiz-screen');
+    qi=0; qc=0; qPick=null; qOrder=[]; qLocked=false; qShuf=null; qPendingRow=-1;
+    qSet=buildQuizSet();
+    plog('확인문제시작', retry?'대체 문항(재평가)':'1차 평가');
+    renderQuiz();
+}
+const qNorm = s => String(s).replace(/\s+/g,'');
+function qRight(q){
+    if(q.type==='order') return qOrder.join('|')===q.blocks.join('|');
+    if(q.type==='grid') return Array.isArray(qPick)&&qPick[0]===q.a[0]&&qPick[1]===q.a[1];
+    if(q.type==='input') return qPick!==null && (q.accept||[q.a]).some(x=>qNorm(x)===qNorm(qPick));
+    return qPick===q.a;
+}
+function renderQuiz(){
+    const qs=QS(), q=qs[qi];
+    $('qbar-i').style.width=((qi/qs.length)*100)+'%';
+    $('qcount').innerText=`${qi+1}/${qs.length}`;
+    let body='';
+    if(q.type==='mc'){
+        body=q.opts.map((o,i)=>{
+            let c='opt'; if(qLocked){ if(i===q.a)c+=' ok'; else if(i===qPick)c+=' no'; } else if(qPick===i)c+=' pick';
+            return `<button class="${c}" onclick="qp(${i})"><span class="lt">${i+1}</span>${esc(o)}</button>`;
+        }).join('');
+    }
+    if(q.type==='cell'){
+        body=`<div class="qcells" style="grid-template-columns:repeat(${Math.min(q.cells.length,5)},1fr)">`+
+            q.cells.map((v,i)=>{
+                let c='qcell'; if(qLocked){ if(i===q.a)c+=' ok'; else if(i===qPick)c+=' no'; } else if(qPick===i)c+=' pick';
+                return `<button class="${c}" onclick="qp(${i})"><b>[${i}]</b><div style="font-size:22px">${em(v)}</div>${nm(v)}</button>`;
+            }).join('')+`</div>`;
+    }
+    if(q.type==='grid'){
+        const cols=q.grid[0].length;
+        body=`<div class="qcells" style="grid-template-columns:30px repeat(${cols},1fr)">`+
+            q.grid.map((row,r)=>`<div class="rowtag" style="border-radius:10px">[${r}]</div>`+
+                row.map((v,c)=>{
+                    let cl='qcell';
+                    const isA=q.a[0]===r&&q.a[1]===c, isP=Array.isArray(qPick)&&qPick[0]===r&&qPick[1]===c;
+                    if(qLocked){ if(isA)cl+=' ok'; else if(isP)cl+=' no'; } else { if(isP)cl+=' pick'; if(qPendingRow===r)cl+=' pick'; }
+                    return `<button class="${cl}" onclick="qpc(${r},${c})"><b>[${r}][${c}]</b><div style="font-size:20px">${em(v)}</div>${nm(v)}</button>`;
+                }).join('')).join('')+`</div>`;
+    }
+    if(q.type==='order'){
+        const key=`${si}-${retry}-${qi}`;
+        if(!qShuf||qShuf.key!==key) qShuf={key,arr:shuffled(q.blocks)};
+        body=qShuf.arr.map((b,bi)=>{
+            const n=qOrder.indexOf(b);
+            return `<button class="opt ${n>=0?'pick':''}" onclick="qpoIdx(${bi})"><span class="lt">${n>=0?n+1:('<i style="color:var(--grey-d);font-style:normal">'+(bi+1)+'</i>')}</span>${esc(b)}</button>`;
+        }).join('') + (qOrder.length?`<button onclick="qOrder=[];renderQuiz()" style="background:none;border:none;color:var(--greytext);font-family:inherit;font-weight:600;font-size:13px;text-decoration:underline;cursor:pointer;margin:2px 4px">순서 지우기</button>`:'');
+    }
+    if(q.type==='input'){
+        body=`<input id="qinput" class="qinput" type="text" autocomplete="off" spellcheck="false" placeholder="${esc(q.ph||'정답을 직접 입력하세요')}" value="${qPick===null?'':esc(qPick).replace(/"/g,'&quot;')}" oninput="qPick=this.value.trim()||null" ${qLocked?'disabled':''}>`
+            + (qLocked?`<div class="qans">정답: <b class="mono">${esc(q.a)}</b></div>`:'');
+    }
+    let keyhelp='';
+    if(q.type==='mc') keyhelp=`숫자 1~${q.opts.length} 로 선택 → Enter 확인`;
+    else if(q.type==='cell') keyhelp=`번호키 0~${q.cells.length-1} 로 칸 선택 → Enter 확인`;
+    else if(q.type==='order') keyhelp=`숫자를 실행 순서대로 입력 (1~${q.blocks.length}) → Enter 확인`;
+    else if(q.type==='grid') keyhelp= qPendingRow>=0?`행 [${qPendingRow}] 선택됨 → 열 번호 입력!`:`행 번호 → 열 번호 입력 → Enter 확인`;
+    else if(q.type==='input') keyhelp=`✍️ 직접 쓰기 — 코드(또는 답)를 입력하고 Enter`;
+    const ok=qLocked&&qRight(q);
+    const ready = q.type==='order' ? qOrder.length===q.blocks.length : qPick!==null;
+    $('quiz-body').innerHTML=`
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 2px 0">
+            <span class="lvl-tag" style="background:${retry?'var(--purple-l)':'var(--blue-l)'};color:${retry?'var(--purple-d)':'var(--blue-d)'}">
+                ${retry?'다시 확인':'확인 문제'} · ${ST().name}</span>
+            <span style="font-weight:700;font-size:13px;color:var(--greytext)">맞힌 개수 ${qc}</span></div>
+        <div style="font-size:12px;font-weight:600;color:var(--greytext);margin:8px 2px 0">⌨️ ${keyhelp}</div>
+        <h2>${q.q}</h2>
+        ${q.code?`<div class="codeblock">${hi(q.code)}</div>`:''}
+        ${body}
+        ${qLocked?`<div class="fbbar ${ok?'ok':'no'}"><h4>${ok?'✅ 정확해요!':'❌ 다시 볼까요'}</h4><p>${q.why}</p>
+            <button class="btn ${ok?'':'red'}" style="width:100%" onclick="qNext()">${qi===qs.length-1?'채점 결과 보기':'계속'} ⏎</button></div>`
+        :`<button class="btn" style="width:100%;margin-top:10px" ${(ready||q.type==='input')?'':'disabled'} onclick="qSubmit()">${(ready||q.type==='input')?'확인 ⏎':'답을 고르세요'}</button>`}`;
+    if(qLocked) window.scrollTo(0,document.body.scrollHeight);
+    const qin=$('qinput'); if(qin && !qLocked) setTimeout(()=>qin.focus(),0);
+}
+function qp(i){ if(qLocked)return; qPick=i; renderQuiz(); }
+function qpc(r,c){ if(qLocked)return; qPendingRow=-1; qPick=[r,c]; renderQuiz(); }
+function qpo(b){ if(qLocked)return; const i=qOrder.indexOf(b); if(i>=0)qOrder.splice(i,1); else qOrder.push(b); renderQuiz(); }
+function qpoIdx(i){ if(qShuf&&qShuf.arr[i]!==undefined) qpo(qShuf.arr[i]); }
+function qSubmit(){
+    const q=QS()[qi];
+    if(q.type==='input' && (qPick===null||!String(qPick).trim())) return;
+    qLocked=true;
+    const right=qRight(q);
+    if(right){ qc++; snd('ok'); } else { prog[si].wrong++; snd('bad'); }
+    plog('문항', `${retry?'재평가':'1차'} Q${qi+1} [${q.type}] ${right?'정답':'오답'}${right?'':' — '+String(q.q).slice(0,30)}`);
+    renderQuiz();
+}
+function qNext(){
+    const qs=QS();
+    if(qi===qs.length-1){
+        const rate=qc/qs.length, p=prog[si];
+        p.attempts++; p.best=Math.max(p.best,rate);
+        if(rate>=PASS) p.passed=true;
+        saveProgress();
+        plog('평가결과', `${Math.round(rate*100)}% (${qc}/${qs.length}) ${rate>=PASS?'통과':'미달'} · ${p.attempts}번째 도전`);
+        verdict(rate);
+    } else { qi++; qPick=null; qOrder=[]; qLocked=false; qPendingRow=-1; renderQuiz(); window.scrollTo(0,0); }
+}
+function verdict(rate){
+    const pct=Math.round(rate*100), pass=rate>=PASS, p=prog[si], last=si===STAGES.length-1;
+    if(pass){ snd('star'); confetti(); } else snd('bad');
+    ovNext = pass ? (last?'map':'nextstage') : 'corrective';
+    const bar=`<div class="meterbar"><i style="width:${pct}%;background:${pass?'var(--green)':'var(--red)'}"></i></div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:13px;color:var(--greytext)">
+        <span>${qc}/${QS().length} 정답 · ${pct}%</span><span>통과 기준 80%</span></div>
+        <div style="font-size:12px;color:var(--greytext);font-weight:600;margin-top:8px">
+        도전 ${p.attempts}번 · 최고 ${Math.round(p.best*100)}%${p.attempts>=3&&!pass?'<br>막히면 선생님이나 짝에게 물어봐도 좋아요!':''}</div>`;
+    showOverlay(pass?'🎓':'🔁', pass?`${ST().name} 통과!`:'조금만 더!',
+        pass?'★★★':'☆☆☆', bar,
+        pass ? (last?'네 주방을 모두 마스터했어요! 🏆':'다음 주방으로 가 볼까요?')
+             : '틀린 부분만 짧게 다시 보고, 다른 문제로 한 번 더 확인해요.',
+        pass ? (last?'맵으로':'다음 주방') : '다시 배우기',
+        pass?'':' purple');
+}
+
+/* ═══════════ 키보드 · 콘페티 ═══════════ */
+window.addEventListener('keydown',e=>{
+    // ── Enter: 진행/확인 ──
+    if(e.key==='Enter'){
+        if($('overlay').classList.contains('show')){ overlayAction(); return; }
+        if(screen==='learn'){
+            const bs=document.querySelectorAll('#learn-body .btnrow .btn');
+            if(bs.length) bs[bs.length-1].click();
+            return;
+        }
+        if(screen==='quiz'){
+            if(qLocked){ qNext(); }
+            else{
+                const q=QS()[qi];
+                const ready = q.type==='order' ? qOrder.length===q.blocks.length : qPick!==null;
+                if(ready) qSubmit();
+            }
+            return;
+        }
+        return;
+    }
+    if(e.key==='Escape'){
+        if(screen==='game'){ quitToMap(); }
+        else if(screen==='learn'||screen==='quiz'){ showMap(); }
+        return;
+    }
+    if(!(e.key>='0'&&e.key<='9')) return;
+    const n=parseInt(e.key);
+    // ── 오버레이: 보너스 선택지(1~3) · 연습 모드 버튼(0) ──
+    if($('overlay').classList.contains('show')){
+        if(bonusActive && n>=1 && n<=bonusActive.opts.length) bonusPick(n-1);
+        else if(n===0){ const pb=$('ov-practice'); if(pb) pb.click(); }
+        return;
+    }
+    // ── 학습카드: 0 = 이전/나가기 ──
+    if(screen==='learn'){
+        if(n===0){ const bs=document.querySelectorAll('#learn-body .btnrow .btn'); if(bs.length) bs[0].click(); }
+        return;
+    }
+    // ── 맵: 1~3 = 차시 시작 ──
+    if(screen==='map'){ if(n>=1&&n<=STAGES.length) tapStage(n-1); return; }
+    // ── 퀴즈: 유형별 숫자 입력 ──
+    if(screen==='quiz'){
+        if(qLocked) return;
+        const q=QS()[qi];
+        if(q.type==='input') return;   // 입력형: 숫자도 입력창으로
+        if(q.type==='mc'){ if(n>=1&&n<=q.opts.length) qp(n-1); }
+        else if(q.type==='cell'){ if(n<q.cells.length) qp(n); }
+        else if(q.type==='order'){ if(qShuf&&n>=1&&n<=qShuf.arr.length) qpo(qShuf.arr[n-1]); }
+        else if(q.type==='grid'){
+            const rows=q.grid.length, cols=q.grid[0].length;
+            if(qPendingRow<0){ if(n<rows){ qPendingRow=n; renderQuiz(); } }
+            else{ const r0=qPendingRow; qPendingRow=-1; if(n<cols) qpc(r0,n); else renderQuiz(); }
+        }
+        return;
+    }
+    // ── 게임 ──
+    if(screen!=='game') return;
+    const st=ST();
+    if(st.mode==='chefs'){
+        if(!curLevel.pr){ callChef(n); return; }           // Lv.1: 셰프 번호 = 바로 호출
+        if(!canAct()) return;
+        if(pendingChef<0){                                  // ① 셰프 선택
+            if(chefRoster[n]){ pendingChef=n; renderGame(); }
+            return;
+        }
+        if(n===0){ pendingChef=-1; renderGame(); return; }  // 0 = 선택 취소
+        const ci=pendingChef; pendingChef=-1;               // ② 개수(매개변수) 입력
+        callChefN(ci, n);
+        if(screen==='game' && !animating) renderGame();
+        return;
+    }
+    if(st.mode==='grid'){
+        if(gridPhase==='pick'){ pickFood(n); }
+        else if(pendingRow<0){ if(custGrid[n]!==undefined){ pendingRow=n; renderGame(); } }
+        else { const r0=pendingRow; pendingRow=-1; if(custGrid[r0]&&custGrid[r0][n]!==undefined) serveTable(r0,n); else renderGame(); }
+        return;
+    }
+    grab(n);
+});
+function confetti(){
+    const c=$('confetti'); if(!c)return; c.innerHTML='';
+    const em=['🎉','⭐','🍔','🎊','🌟','❤️'];
+    for(let i=0;i<26;i++){
+        const s=document.createElement('span'); s.className='confetti-piece'; s.textContent=em[i%em.length];
+        s.style.left=(Math.random()*100)+'%'; s.style.animationDelay=(Math.random()*.5)+'s';
+        s.style.fontSize=(16+Math.random()*20)+'px'; c.appendChild(s);
+    }
+    setTimeout(()=>{c.innerHTML='';},2400);
+}
+
+
+/* ═══════════ BGM (Web Audio 루프) ═══════════ */
+let bgmOn=true; try{ bgmOn=localStorage.getItem('pd_bgm')!=='off'; }catch(e){}
+let bgmStarted=false, bgmGain=null, bgmTimer=null, bgmStep=0, bgmNext=0;
+const BGM_STEP=0.21;
+const BGM_MELODY=[329.63,392,523.25,392, 329.63,392,440,392,
+ 261.63,329.63,440,329.63, 261.63,329.63,392,329.63,
+ 220,261.63,349.23,261.63, 220,261.63,349.23,440,
+ 246.94,293.66,392,293.66, 246.94,293.66,392,493.88];
+const BGM_BASS=[130.81,110,87.31,98];
+function bgmTone(f,t,d,type,v){
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g); g.connect(bgmGain); o.start(t); o.stop(t+d+0.02);
+}
+function bgmSchedule(){
+    if(!actx||!bgmGain) return;
+    const horizon=actx.currentTime+0.6;
+    while(bgmNext<horizon){
+        const m=BGM_MELODY[bgmStep%BGM_MELODY.length];
+        if(m) bgmTone(m,bgmNext,0.19,'triangle',0.045);
+        if(bgmStep%8===0) bgmTone(BGM_BASS[Math.floor(bgmStep/8)%BGM_BASS.length],bgmNext,0.8,'sine',0.07);
+        bgmNext+=BGM_STEP; bgmStep++;
+    }
+}
+function startBgm(){
+    if(bgmStarted) return;
+    try{
+        if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+        if(actx.state==='suspended') actx.resume();
+        bgmGain=actx.createGain(); bgmGain.gain.value=bgmOn?1:0; bgmGain.connect(actx.destination);
+        bgmNext=actx.currentTime+0.1; bgmStarted=true;
+        bgmTimer=setInterval(bgmSchedule,150);
+    }catch(e){}
+}
+function toggleBgm(){
+    bgmOn=!bgmOn;
+    try{ localStorage.setItem('pd_bgm',bgmOn?'on':'off'); }catch(e){}
+    if(bgmOn&&!bgmStarted) startBgm();
+    if(bgmGain) bgmGain.gain.value=bgmOn?1:0;
+    paintBgm();
+}
+function paintBgm(){ const b=document.getElementById('bgm-btn'); if(b) b.textContent=bgmOn?'🔊':'🔇'; }
+function bgmGesture(){ if(bgmOn) startBgm(); window.removeEventListener('pointerdown',bgmGesture); window.removeEventListener('keydown',bgmGesture); }
+window.addEventListener('pointerdown',bgmGesture);
+window.addEventListener('keydown',bgmGesture);
+paintBgm();
+
+loadProgress();
+showMap();
+</script>
+</body>
+</html>
